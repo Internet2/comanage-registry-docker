@@ -1,4 +1,4 @@
-# Copyright (C) 2010-15 University Corporation for Advanced Internet Development, Inc.
+# Copyright (C) 2017 Spherical Cow Group
 # 
 # Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
 # the License. You may obtain a copy of the License at
