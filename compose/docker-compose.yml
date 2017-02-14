@@ -1,0 +1,22 @@
+version: '2.1'
+services:
+  comanage-registry:
+    image: sphericalcowgroup/comanage-registry:develop-shibboleth-sp
+    ports:
+     - "80:80"
+     - "443:443"
+    volumes:
+     - /opt/comanage-registry:/local
+     - /tmp/shibboleth2.xml:/etc/shibboleth/shibboleth2.xml
+    depends_on:
+      comanage-registry-database:
+        condition: service_healthy
+  comanage-registry-database:
+    image: sphericalcowgroup/comanage-registry-postgres
+    volumes:
+     - /tmp/postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "psql", "-h", "comanage-registry-database", "-U", "postgres", "-c", "\\l"]
+      interval: 5s
+      timeout: 5s
+      retries: 3
