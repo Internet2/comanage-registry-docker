@@ -17,7 +17,7 @@ that support federated identity deployments.
 ```
 export COMANAGE_REGISTRY_VERSION=develop
 sed -e s/%%COMANAGE_REGISTRY_VERSION%%/${COMANAGE_REGISTRY_VERSION}/g Dockerfile.template  > Dockerfile
-docker build -t comanage-registry-basic-auth:${COMANAGE_REGISTRY_VERSION} .
+docker build -t comanage-registry:${COMANAGE_REGISTRY_VERSION}-basic-auth .
 ```
 
 You can (and should) use build arguments to bootstrap the first
@@ -38,7 +38,7 @@ docker build \
   --build-arg COMANAGE_REGISTRY_ADMIN_GIVEN_NAME=${COMANAGE_REGISTRY_ADMIN_GIVEN_NAME} \
   --build-arg COMANAGE_REGISTRY_ADMIN_FAMILY_NAME=${COMANAGE_REGISTRY_ADMIN_FAMILY_NAME} \
   --build-arg COMANAGE_REGISTRY_ADMIN_USERNAME=${COMANAGE_REGISTRY_ADMIN_USERNAME} \
-  -t comanage-registry:${COMANAGE_REGISTRY_VERSION} .
+  -t comanage-registry:${COMANAGE_REGISTRY_VERSION}-basic-auth .
 ```
 ## Run
 
@@ -110,7 +110,7 @@ docker run -d --name comanage-registry \
   -v /opt/passwords:/etc/apache2/passwords \
   --network comanage-registry-internal-network \
   -p 80:80 -p 443:443 \
-  comanage-registry:${COMANAGE_REGISTRY_VERSION}
+  comanage-registry:${COMANAGE_REGISTRY_VERSION}-basic-auth
 ```
 
 ### Authentication
