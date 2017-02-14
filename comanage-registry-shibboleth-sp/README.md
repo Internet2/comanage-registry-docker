@@ -1,0 +1,147 @@
+# COmanage Registry Shibboleth
+
+Intended to build a COmanage Registry image
+using the official PHP 7 with Apache image as the foundation
+and providing the Shibboleth Native SP for Apache HTTP Server
+as the authentication mechanism. 
+
+## Build
+
+```
+export COMANAGE_REGISTRY_VERSION=develop
+sed -e s/%%COMANAGE_REGISTRY_VERSION%%/${COMANAGE_REGISTRY_VERSION}/g Dockerfile.template  > Dockerfile
+docker build -t comanage-registry-shibboleth-sp:${COMANAGE_REGISTRY_VERSION} .
+```
+
+You can (and should) use build arguments to bootstrap the first
+platform administrator. The administrator username is the value
+COmanage Registry expects to read from $REMOTE\_USER after
+the administrator authenticates using whichever authentication
+method is provided:
+
+```
+export COMANAGE_REGISTRY_VERSION=develop
+
+export COMANAGE_REGISTRY_ADMIN_GIVEN_NAME=Karel
+export COMANAGE_REGISTRY_ADMIN_FAMILY_NAME=Novak
+export COMANAGE_REGISTRY_ADMIN_USERNAME=karel.novak@my.org
+
+sed -e s/%%COMANAGE_REGISTRY_VERSION%%/${COMANAGE_REGISTRY_VERSION}/g Dockerfile.template  > Dockerfile
+docker build \
+  --build-arg COMANAGE_REGISTRY_ADMIN_GIVEN_NAME=${COMANAGE_REGISTRY_ADMIN_GIVEN_NAME} \
+  --build-arg COMANAGE_REGISTRY_ADMIN_FAMILY_NAME=${COMANAGE_REGISTRY_ADMIN_FAMILY_NAME} \
+  --build-arg COMANAGE_REGISTRY_ADMIN_USERNAME=${COMANAGE_REGISTRY_ADMIN_USERNAME} \
+  -t comanage-registry-shibboleth-sp:${COMANAGE_REGISTRY_VERSION} .
+```
+## Run
+
+### Database
+
+COmanage Registry requires a relational database. See the 
+[PostgreSQL example for COmanage Registry](../comanage-registry-postgres/README.md).
+
+### Network
+
+Create a user-defined network bridge with
+
+```
+docker network create --driver=bridge \
+  --subnet=192.168.0.0/16 \
+  --gateway=192.168.0.100 \
+  comanage-registry-internal-network
+```
+
+### COmanage Registry Configuration
+
+Create a directory to hold persistent COmanage Registry configuration and
+other state such as local plugins and other customizations. In that directory
+create a `Config` directory and in it place a `database.php` and `email.php`
+configuration file:
+
+```
+mkdir -p /opt/comanage-registry/Config
+
+cat >> /opt/comanage-registry/Config/database.php <<"EOF"
+<?php
+
+class DATABASE_CONFIG {
+
+  public $default = array(
+    'datasource' => 'Database/Postgres',
+    'persistent' => false,
+    'host' => 'comanage-registry-database',
+    'login' => 'registry_user',
+    'password' => 'password',
+    'database' => 'registry',
+    'prefix' => 'cm_',
+  );
+
+}
+EOF
+
+cat >> /opt/comanage-registry/Config/database.php <<"EOF"
+<?php
+
+class EmailConfig {
+
+  public $default = array(
+    'transport' => 'Smtp',
+    'host' => 'tls://smtp.gmail.com',
+    'port' => 465,
+    'username' => 'account@gmail.com',
+    'password' => 'password'
+  );
+}
+EOF
+```
+
+### Shibboleth SP Configuration
+
+Mount or COPY Shibboleth SP configuration files into the directory
+`/etc/shibboleth`. A standard set of default files is already present
+in the image.
+
+```
+COPY shibboleth2.xml /etc/shibboleth/shibboleth2.xml
+COPY sp-cert.pem /etc/shibboleth/sp-cert.pem
+COPY sp-key.pem /etc/shibboleth/sp-key.pem
+```
+
+### Container
+
+```
+docker run -d --name comanage-registry \
+  -v /opt/comanage-registry:/local \
+  --network comanage-registry-internal-network \
+  -p 80:80 -p 443:443 \
+  comanage-registry-shibboleth-sp:${COMANAGE_REGISTRY_VERSION}
+```
+
+### Logging
+
+Both Apache HTTP Server and COmanage Registry log to the stdout and
+stderr of the container.
+
+The Shibboleth SP can also log to the stdout and stderr of the container
+by setting the `logger` configuration option in `shibboleth2.xml`.
+
+```
+<SPConfig xmlns="urn:mace:shibboleth:2.0:native:sp:config"
+    xmlns:conf="urn:mace:shibboleth:2.0:native:sp:config"
+    xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"
+    xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol"    
+    xmlns:md="urn:oasis:names:tc:SAML:2.0:metadata"
+    logger="/etc/shibboleth/console.logger"
+    clockSkew="180">
+```
+
+### HTTPS Configuration
+
+Mount or COPY in an X.509 certificate file, associated private key file,
+and certificate signing chain file.
+
+```
+COPY cert.pem /etc/apache2/cert.pem
+COPY privkey.pem /etc/apache2/privkey.pem
+COPY chain.pem /etc/apache2/chain.pem
+```

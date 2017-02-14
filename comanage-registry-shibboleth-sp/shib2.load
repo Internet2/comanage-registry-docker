@@ -1,0 +1,1 @@
+LoadModule mod_shib /opt/shibboleth-sp/lib/shibboleth/mod_shib_24.so
