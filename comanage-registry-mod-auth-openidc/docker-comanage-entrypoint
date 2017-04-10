@@ -1,0 +1,87 @@
+#!/bin/bash
+
+# COmanage Registry Dockerfile entrypoint
+#
+# Portions licensed to the University Corporation for Advanced Internet
+# Development, Inc. ("UCAID") under one or more contributor license agreements.
+# See the NOTICE file distributed with this work for additional information
+# regarding copyright ownership.
+#
+# UCAID licenses this file to you under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with the
+# License. You may obtain a copy of the License at:
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Database initialization or schema management using adodb
+# is idempotent so we always run it at startup.
+pushd "$COMANAGE_REGISTRY_DIR/app" > /dev/null 2>&1
+./Console/cake database > /dev/null 2>&1
+popd > /dev/null 2>&1
+
+# We only want to run the setup script once since it creates
+# state in the database. Until COmanage Registry has a better
+# mechanism for telling us if setup has already been run
+# we create an ephemeral CakePHP script to tell us.
+SETUP_ALREADY_SCRIPT="$COMANAGE_REGISTRY_DIR/app/Console/Command/SetupAlreadyShell.php"
+
+cat >> $SETUP_ALREADY_SCRIPT <<"EOF"
+<?php
+
+class SetupAlreadyShell extends AppShell {
+  var $uses = array('Co');
+
+  function main() {
+    $args = array();
+    $args['conditions']['Co.name'] = 'COmanage';
+    $args['contain'] = false;
+
+    $co = $this->Co->find('first', $args);
+
+    if(!empty($co)) {
+      $this->error('Setup already');
+    }
+  }
+}
+EOF
+
+pushd /srv/comanage-registry/app > /dev/null 2>&1
+./Console/cake setupAlready > /dev/null 2>&1
+setup_already=$?
+
+rm -f "$SETUP_ALREADY_SCRIPT"
+
+if [ $setup_already -eq 0 ]; then
+    rm -f "$COMANAGE_REGISTRY_DIR/local/Config/security.salt" > /dev/null 2>&1
+    rm -f "$COMANAGE_REGISTRY_DIR/local/Config/security.seed" > /dev/null 2>&1
+    ./Console/cake setup --admin-given-name "${COMANAGE_REGISTRY_ADMIN_GIVEN_NAME}" \
+                         --admin-family-name "${COMANAGE_REGISTRY_ADMIN_FAMILY_NAME}" \
+                         --admin-username "${COMANAGE_REGISTRY_ADMIN_USERNAME}" \
+                         --enable-pooling "${COMANAGE_REGISTRY_ENABLE_POOLING}" > /dev/null 2>&1 
+fi
+
+popd > /dev/null 2>&1
+
+# Running CakePHP console commands generates cache files so 
+# set the ownership of those files appropriately.
+chown -R www-data:www-data "$COMANAGE_REGISTRY_DIR/app/tmp"
+
+# Make sure the directory structure we need is available
+# in the data volume for $COMANAGE_REGISTRY_DIR/local
+mkdir -p "$COMANAGE_REGISTRY_DIR/local/Config"
+mkdir -p "$COMANAGE_REGISTRY_DIR/local/Plugin"
+mkdir -p "$COMANAGE_REGISTRY_DIR/local/View/Pages/public"
+mkdir -p "$COMANAGE_REGISTRY_DIR/local/webroot/img"
+
+# first arg is `-f` or `--some-option`
+if [ "${1#-}" != "$1" ]; then
+    set -- apache2-foreground "$@"
+fi
+
+exec "$@"
