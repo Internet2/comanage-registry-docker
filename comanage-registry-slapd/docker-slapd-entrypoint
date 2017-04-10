@@ -1,0 +1,191 @@
+#!/bin/bash
+
+# slapd for COmanage Registry Dockerfile entrypoint
+#
+# Portions licensed to the University Corporation for Advanced Internet
+# Development, Inc. ("UCAID") under one or more contributor license agreements.
+# See the NOTICE file distributed with this work for additional information
+# regarding copyright ownership.
+#
+# UCAID licenses this file to you under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with the
+# License. You may obtain a copy of the License at:
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+set -e
+
+# Only bootstrap the directory if it does not already exist.
+if [[ ! -f /var/lib/ldap/data.mdb && ! -f /etc/ldap/slapd.d/cn=config.ldif ]]; then
+    # Parse the domain, rdn, and the value of rdn from the OLC_SUFFIX
+    DOMAIN=`echo ${OLC_SUFFIX} | sed -e 's/dc=//g' -e 's/,/./g'`
+    RDN=`echo ${OLC_SUFFIX} | sed -E -e 's/^([^=]+)=[^=,]+.*/\1/'`
+    RDN_VALUE=`echo ${OLC_SUFFIX} | sed -E -e 's/^[^=]+=([^=,]+).*/\1/'`
+
+    # Parse the rdn and its value from the OLC_ROOT_DN
+    ADMIN_RDN=`echo ${OLC_ROOT_DN} | sed -E -e 's/^([^=]+)=[^=,]+.*/\1/'`
+    ADMIN_RDN_VALUE=`echo ${OLC_ROOT_DN} | sed -E -e 's/^[^=]+=([^=,]+).*/\1/'`
+    
+    # Create a temporary password and its hash that will be used to
+    # bootstrap the OLC_SUFFIX. It is later replaced by the OLC_ROOT_PW hash.
+    OLC_ROOT_PW_TMP=`cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1`
+    OLC_ROOT_PW_TMP_HASH=`/usr/sbin/slappasswd -s ${OLC_ROOT_PW_TMP}`
+
+    # Copy over the distribution files created by Debian installation of slapd
+    # so that we can start slapd.
+    mkdir -p /var/lib/ldap
+    cp -a /var/lib/ldap.dist/* /var/lib/ldap/
+    chown -R openldap:openldap /var/lib/ldap
+
+    mkdir -p /etc/ldap/slapd.d
+    cp -a /etc/ldap/slapd.d.dist/* /etc/ldap/slapd.d/
+    chown -R openldap:openldap /etc/ldap/slapd.d
+
+    # Start slapd listening only on socket.
+    slapd -h ldapi:/// -u openldap -g openldap > /dev/null 2>&1
+
+    # Reconfigure slapd to look in /var/lib/ldap.dist for the default
+    # directory created by the Debian slapd installation.
+    cat <<EOF > /tmp/modify.ldif
+dn: olcDatabase={1}mdb,cn=config
+changetype: modify
+replace: olcDbDirectory
+olcDbDirectory: /var/lib/ldap.dist
+EOF
+
+    ldapmodify -Y EXTERNAL -H ldapi:/// -f /tmp/modify.ldif > /dev/null 2>&1 
+
+    rm -f /tmp/modify.ldif > /dev/null 2>&1
+
+    # Kill slapd and remove the directory created by the Debian installation
+    # that was copied over and used to allow slapd to start initially.
+    killall slapd
+
+    rm -f /var/lib/ldap/* 
+
+    # Start slapd again listening only on socket.
+    slapd -h ldapi:/// -u openldap -g openldap > /dev/null 2>&1
+    
+    # Configure the directory with the injected suffix but the temporary password.
+    cat <<EOF > /tmp/modify.ldif
+dn: olcDatabase={2}mdb,cn=config
+objectClass: olcDatabaseConfig
+objectClass: olcMdbConfig
+olcDatabase: {2}mdb
+olcDbDirectory: /var/lib/ldap
+olcSuffix: ${OLC_SUFFIX}
+olcLastMod: TRUE
+olcRootDN: ${OLC_ROOT_DN}
+olcRootPW: ${OLC_ROOT_PW_TMP_HASH}
+olcAccess: {0}to dn.base="${OLC_ROOT_DN}" by sockname.regex=/var/run/slapd/ldapi auth by users none by * none
+olcAccess: {1}to attrs=userPassword,shadowLastChange by self auth by anonymous auth by * none
+olcAccess: {2}to * by * none
+olcDbCheckpoint: 512 30
+olcDbIndex: objectClass eq,pres
+olcDbIndex: ou,cn,mail,surname,givenname eq,pres,sub
+olcDbMaxSize: 1073741824
+EOF
+
+    ldapmodify -Y EXTERNAL -H ldapi:/// -a -f /tmp/modify.ldif > /dev/null 2>&1
+
+    rm -f /tmp/modify.ldif > /dev/null 2>&1
+
+    # Configure slapd to use a better password hash.
+    cat <<EOF > /tmp/modify.ldif
+dn: cn=config
+changetype: modify
+add: olcPasswordCryptSaltFormat
+olcPasswordCryptSaltFormat: \$6\$rounds=5000$%.86s
+-
+add: olcPasswordHash
+olcPasswordHash: {CRYPT}
+EOF
+
+    ldapmodify -Y EXTERNAL -H ldapi:/// -f /tmp/modify.ldif > /dev/null 2>&1
+
+    rm -f /tmp/modify.ldif > /dev/null 2>&1
+
+    # Create the actual contents of the directory and the admin DN
+    # with the injected password hash.
+    cat <<EOF > /tmp/modify.ldif
+dn: ${OLC_SUFFIX}
+objectClass: dcObject
+objectClass: organization
+o: ${DOMAIN}
+${RDN}: ${RDN_VALUE}
+
+dn: ${OLC_ROOT_DN}
+objectClass: simpleSecurityObject
+objectClass: organizationalRole
+${ADMIN_RDN}: ${ADMIN_RDN_VALUE}
+description: LDAP administrator
+userPassword: ${OLC_ROOT_PW}
+EOF
+
+    ldapmodify -x -D ${OLC_ROOT_DN} -w ${OLC_ROOT_PW_TMP} -H ldapi:/// -a -f /tmp/modify.ldif > /dev/null 2>&1
+
+    rm -f /tmp/modify.ldif > /dev/null 2>&1
+
+    # Remove the temporary root password from the directory configuration.
+    cat <<EOF > /tmp/modify.ldif
+dn: olcDatabase={2}mdb,cn=config
+changetype: modify
+delete: olcRootPW
+EOF
+
+    ldapmodify -Y EXTERNAL -H ldapi:/// -f /tmp/modify.ldif > /dev/null 2>&1
+
+    rm -f /tmp/modify.ldif > /dev/null 2>&1
+
+    # Configure TLS if cert and key available.
+    if [[ -f /etc/ldap/slapd.crt && -f /etc/ldap/slapd.key ]]; then
+        cat <<EOF > /tmp/modify.ldif
+dn: cn=config
+changetype: modify
+add: olcTLSCertificateFile
+olcTLSCertificateFile: /etc/ldap/slapd.crt
+-
+add: olcTLSCertificateKeyFile
+olcTLSCertificateKeyFile: /etc/ldap/slapd.key
+-
+add: olcTLSCipherSuite
+olcTLSCipherSuite: SECURE256
+-
+add: olcTLSProtocolMin
+olcTLSProtocolMin: 3.2
+EOF
+        if [[ -f /etc/ldap/slapd.ca.crt ]]; then
+            cat <<EOF >> /tmp/modify.ldif
+-
+add: olcTLSCACertificateFile
+olcTLSCACertificateFile: /etc/ldap/slapd.ca.crt
+EOF
+        fi
+
+        ldapmodify -Y EXTERNAL -H ldapi:/// -f /tmp/modify.ldif > /dev/null 2>&1
+
+        rm -f /tmp/modify.ldif > /dev/null 2>&1
+
+
+    fi # Done configuring TLS if cert and key available.
+
+    # Add eduPerson, eduMember, and openssh-lpk schemas.
+    ldapmodify -Y EXTERNAL -H ldapi:/// -a -f /etc/ldap/schema/eduperson.ldif 2>&1
+    ldapmodify -Y EXTERNAL -H ldapi:/// -a -f /etc/ldap/schema/openssh-lpk.ldif 2>&1
+
+    # Stop slapd.
+    killall slapd
+
+    # Fix permissions.
+    chown -R openldap:openldap /var/lib/ldap
+    chown -R openldap:openldap /etc/ldap/slapd.d
+
+fi
+
+exec "$@"
