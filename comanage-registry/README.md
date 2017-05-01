@@ -137,11 +137,10 @@ stderr of the container.
 
 ### HTTPS Configuration
 
-Mount or COPY in an X.509 certificate file, associated private key file,
-and certificate signing chain file.
+Mount or COPY in an X.509 certificate file (containing the CA signing certificate(s), if any)
+and associated private key file.
 
 ```
 COPY cert.pem /etc/apache2/cert.pem
 COPY privkey.pem /etc/apache2/privkey.pem
-COPY chain.pem /etc/apache2/chain.pem
 ```
