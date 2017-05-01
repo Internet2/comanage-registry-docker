@@ -30,4 +30,5 @@ build images for
 * [COmanage Registry with Shibboleth](comanage-registry-shibboleth-sp/README.md) Native SP for Apache Authentication
 * [Example PostgreSQL](comanage-registry-postgres/README.md) image for use with COmanage Registry
 * [Example MariaDB](comanage-registry-mariadb/README.md) image for use with COmanage Registry
+* [Example OpenLDAP slapd](comanage-registry-slapd/README.md) image for use with COmanage Registry
 * [Example Docker Compose](compose/README.md) file for deploying COmanage Registry
