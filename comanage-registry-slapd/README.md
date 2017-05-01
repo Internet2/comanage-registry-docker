@@ -56,6 +56,26 @@ docker run -d --name comanage-registry-slapd \
 
 ```
 
+The following environment variables can be set:
+
+* `OLC_SUFFIX`: Directory suffix (default is `dc=my,dc=org`)
+* `OLC_ROOT_DN`: DN for the directory admin (default is `cn=admin,dc=my,dc=org`)
+* `OLC_ROOT_PW`: Password for the root DN (default is `password`)
+
+For example
+
+```
+docker run -d --name comanage-registry-slapd \
+  -v /tmp/slapd-data:/var/lib/ldap \
+  -v /tmp/slapd-config:/etc/ldap/slapd.d \
+  --network comanage-registry-internal-network \
+  -e OLC_SUFFIX=dc=my,dc=org \
+  -e OLC_ROOT_DN=cn=admin,dc=my,dc=org \
+  -e OLC_ROOT_PW=password \
+  -p 389:389 \
+  comanage-registry-slapd
+```
+
 To support TLS mount or copy in an X.509 certificate, private key,
 and CA signing certificate or chain file like this:
 
@@ -67,6 +87,9 @@ docker run -d --name comanage-registry-slapd \
   -v my.key:/etc/ldap/slapd.key \
   -v chain.pem:/etc/ldap/slapd.ca.crt \
   --network comanage-registry-internal-network \
+  -e OLC_SUFFIX=dc=my,dc=org \
+  -e OLC_ROOT_DN=cn=admin,dc=my,dc=org \
+  -e OLC_ROOT_PW=password \
   -p 389:389 -p 636:636 \
   sphericalcowgroup/comanage-registry-slapd
 ```
