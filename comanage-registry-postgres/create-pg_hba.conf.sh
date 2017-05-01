@@ -23,8 +23,19 @@ set -e
 
 mkdir -p /etc/postgres
 
-cat > /etc/postgres/pg_hba.conf <<EOF
+if [ -n "$COMANAGE_REGISTRY_POSTGRES_USER_PASSWORD" ]
+then
+
+    cat >> /etc/postgres/pg_hba.conf <<EOF
 local all postgres peer
 host $COMANAGE_REGISTRY_POSTGRES_DATABASE $COMANAGE_REGISTRY_POSTGRES_USER 127.0.0.1/32 md5
 host $COMANAGE_REGISTRY_POSTGRES_DATABASE $COMANAGE_REGISTRY_POSTGRES_USER samenet md5
 EOF
+
+else
+    cat >> /etc/postgres/pg_hba.conf <<EOF
+local all postgres peer
+host $COMANAGE_REGISTRY_POSTGRES_DATABASE $COMANAGE_REGISTRY_POSTGRES_USER samenet trust
+EOF
+
+fi

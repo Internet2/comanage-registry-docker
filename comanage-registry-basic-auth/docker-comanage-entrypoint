@@ -26,6 +26,63 @@ else
     OUTPUT=/dev/null
 fi
 
+# Make sure the directory structure we need is available
+# in the data volume for $COMANAGE_REGISTRY_DIR/local
+mkdir -p "$COMANAGE_REGISTRY_DIR/local/Config"
+mkdir -p "$COMANAGE_REGISTRY_DIR/local/Plugin"
+mkdir -p "$COMANAGE_REGISTRY_DIR/local/View/Pages/public"
+mkdir -p "$COMANAGE_REGISTRY_DIR/local/webroot/img"
+
+# If the COmanage Registry configuration files database.php and email.php
+# do not exist create simple versions to aid people evaluating the tool.
+if [ ! -f "$COMANAGE_REGISTRY_DIR/local/Config/database.php" ]; then
+    cat >> "$COMANAGE_REGISTRY_DIR/local/Config/database.php" <<"EOF"
+<?php
+
+class DATABASE_CONFIG {
+
+  public $default = array(
+    'datasource' => 'Database/Postgres',
+    'persistent' => false,
+    'host' => 'comanage-registry-database',
+    'login' => 'registry_user',
+    'password' => 'password',
+    'database' => 'registry',
+    'prefix' => 'cm_',
+  );
+
+}
+EOF
+
+fi
+
+if [ ! -f "$COMANAGE_REGISTRY_DIR/local/Config/email.php" ]; then
+    cat >> "$COMANAGE_REGISTRY_DIR/local/Config/email.php" <<"EOF"
+<?php
+
+class EmailConfig {
+
+  public $default = array(
+    'transport' => 'Smtp',
+    'host' => 'tls://smtp.gmail.com',
+    'port' => 465,
+    'username' => 'somebody@gmail.com',
+    'password' => 'password'
+  );
+}
+EOF
+
+fi
+
+# If the basic auth password file does not exist create a simple version to
+# aid people evaluating the tool.
+if [ ! -f "/etc/apache2/passwords" ]; then
+    cat >> /etc/apache2/passwords <<"EOF"
+registry.admin:$apr1$qqrvav7G$nSHYErU4ljDPmO1wNBG6e0
+EOF
+
+fi
+
 # Loop until we are able to open a connection to the database.
 DATABASE_TEST_SCRIPT="$COMANAGE_REGISTRY_DIR/app/Console/Command/DatabaseTestShell.php"
 
@@ -120,12 +177,6 @@ popd > "$OUTPUT" 2>&1
 # set the ownership of those files appropriately.
 chown -R www-data:www-data "$COMANAGE_REGISTRY_DIR/app/tmp"
 
-# Make sure the directory structure we need is available
-# in the data volume for $COMANAGE_REGISTRY_DIR/local
-mkdir -p "$COMANAGE_REGISTRY_DIR/local/Config"
-mkdir -p "$COMANAGE_REGISTRY_DIR/local/Plugin"
-mkdir -p "$COMANAGE_REGISTRY_DIR/local/View/Pages/public"
-mkdir -p "$COMANAGE_REGISTRY_DIR/local/webroot/img"
 
 # first arg is `-f` or `--some-option`
 if [ "${1#-}" != "$1" ]; then
