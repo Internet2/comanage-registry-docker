@@ -19,11 +19,43 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Database initialization or schema management using adodb
-# is idempotent so we always run it at startup.
-pushd "$COMANAGE_REGISTRY_DIR/app" > /dev/null 2>&1
-./Console/cake database > /dev/null 2>&1
-popd > /dev/null 2>&1
+if [ -n "$COMANAGE_DEBUG" ]
+then
+    OUTPUT=/dev/stdout
+else
+    OUTPUT=/dev/null
+fi
+
+# Loop until we are able to open a connection to the database.
+DATABASE_TEST_SCRIPT="$COMANAGE_REGISTRY_DIR/app/Console/Command/DatabaseTestShell.php"
+
+cat >> $DATABASE_TEST_SCRIPT <<"EOF"
+<?php
+
+App::import('Model', 'ConnectionManager');
+
+class DatabaseTestShell extends AppShell {
+  function main() {
+    try {
+      $db = ConnectionManager::getDataSource('default');
+    } catch (Exception $e) {
+      $this->error("Unable to connect to datasource");
+    }
+    $this->out("Connected to datasource");
+  }
+}
+EOF
+
+pushd "$COMANAGE_REGISTRY_DIR/app" > "$OUTPUT" 2>&1
+
+until ./Console/cake databaseTest > "$OUTPUT" 2>&1; do
+    >&2 echo "Database is unavailable - sleeping"
+    sleep 1
+done
+
+rm -f "$DATABASE_TEST_SCRIPT"
+
+popd > "$OUTPUT" 2>&1
 
 # We only want to run the setup script once since it creates
 # state in the database. Until COmanage Registry has a better
@@ -42,31 +74,47 @@ class SetupAlreadyShell extends AppShell {
     $args['conditions']['Co.name'] = 'COmanage';
     $args['contain'] = false;
 
-    $co = $this->Co->find('first', $args);
+    try {
+      $co = $this->Co->find('first', $args);
+    } catch (CakeException $e) {
+      $this->out('Not setup already');
+    }
 
-    if(!empty($co)) {
+    if(empty($co)) {
+      $this->out('Not setup already');
+    } else {
       $this->error('Setup already');
     }
   }
 }
 EOF
 
-pushd /srv/comanage-registry/app > /dev/null 2>&1
-./Console/cake setupAlready > /dev/null 2>&1
+pushd "$COMANAGE_REGISTRY_DIR/app" > "$OUTPUT" 2>&1
+./Console/cake setupAlready > "$OUTPUT" 2>&1
 setup_already=$?
 
 rm -f "$SETUP_ALREADY_SCRIPT"
 
 if [ $setup_already -eq 0 ]; then
-    rm -f "$COMANAGE_REGISTRY_DIR/local/Config/security.salt" > /dev/null 2>&1
-    rm -f "$COMANAGE_REGISTRY_DIR/local/Config/security.seed" > /dev/null 2>&1
+    rm -f "$COMANAGE_REGISTRY_DIR/local/Config/security.salt" > "$OUTPUT" 2>&1
+    rm -f "$COMANAGE_REGISTRY_DIR/local/Config/security.seed" > "$OUTPUT" 2>&1
+    ./Console/cake database > "$OUTPUT" 2>&1 && \
     ./Console/cake setup --admin-given-name "${COMANAGE_REGISTRY_ADMIN_GIVEN_NAME}" \
                          --admin-family-name "${COMANAGE_REGISTRY_ADMIN_FAMILY_NAME}" \
                          --admin-username "${COMANAGE_REGISTRY_ADMIN_USERNAME}" \
-                         --enable-pooling "${COMANAGE_REGISTRY_ENABLE_POOLING}" > /dev/null 2>&1 
+                         --enable-pooling "${COMANAGE_REGISTRY_ENABLE_POOLING}" > "$OUTPUT" 2>&1
 fi
 
-popd > /dev/null 2>&1
+popd > "$OUTPUT" 2>&1
+
+# We always run upgradeVersion since it will not make any changes
+# if the current and target versions are the same or if
+# an upgrade from the current to the target version is not allowed.
+pushd "$COMANAGE_REGISTRY_DIR/app" > "$OUTPUT" 2>&1
+
+./Console/cake upgradeVersion "${COMANAGE_REGISTRY_UPGRADE_VERSION_OPTS}" > "$OUTPUT" 2>&1
+
+popd > "$OUTPUT" 2>&1
 
 # Running CakePHP console commands generates cache files so 
 # set the ownership of those files appropriately.
