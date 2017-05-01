@@ -67,10 +67,10 @@ docker run -d --name comanage-registry-database \
   --network comanage-registry-internal-network \
   -v /tmp/postgres-data:/var/lib/postgresql/data \
   -e POSTGRES_USER=postgres \
-  -e POSTGRES_PASSWORD=a_password \
+  -e POSTGRES_PASSWORD=superuser_password \
   -e COMANAGE_REGISTRY_POSTGRES_DATABASE=registry \
   -e COMANAGE_REGISTRY_POSTGRES_USER=registry_user \
-  -e COMANAGE_REGISTRY_POSTGRES_USER_PASSWORD=another_password \
+  -e COMANAGE_REGISTRY_POSTGRES_USER_PASSWORD=password \
   comanage-registry-postgres
 ```
 
