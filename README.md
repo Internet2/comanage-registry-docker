@@ -21,9 +21,20 @@ limitations under the License.
 
 # COmanage Registry Docker
 
+## What it is
 Dockerfile templates and associated files to 
 build images for 
-[COmanage Registry](https://spaces.internet2.edu/display/COmanage/Home).
+[COmanage Registry](https://spaces.internet2.edu/display/COmanage/Home), as well as
+documentation and recipes for both simple deployments to use for evaluating
+COmanage Registry and deployments ready for production.
+
+## What is here
+
+* [Simple deployment for evaluation, no persistence](simple-no-persistence/README.md)
+* [Dockerfile templates](#Dockerfile-templates)
+
+
+## Dockerfile templates
 
 * [COmanage Registry](comanage-registry/README.md) (no authentication, primarily for developers)
 * [COmanage Registry with Basic Authentication](comanage-registry-basic-auth/README.md)
