@@ -21,7 +21,7 @@ limitations under the License.
 
 # PostgreSQL for COmanage Registry
 
-A simple example demonstrating how to create and image and container
+A simple example demonstrating how to create an image and container
 based on PostgreSQL to use with COmanage Registry containers. 
 
 ## Build
@@ -51,3 +51,28 @@ docker run -d --name comanage-registry-database \
   -v /tmp/postgres-data:/var/lib/postgresql/data \
   comanage-registry-postgres
 ```
+
+You can use the following environment variables with the image:
+
+* `POSTGRES_USER`: superuser (default is `postgres`)
+* `POSTGRES_PASSWORD`: password for superuser (no default)
+* `COMANAGE_REGISTRY_POSTGRES_DATABASE`: COmanage Registry database (default is `registry`)
+* `COMANAGE_REGISTRY_POSTGRES_USER`: COmanage Registry database user (default is `registry_user`)
+* `COMANAGE_REGISTRY_POSTGRES_USER_PASSWORD`: password for database user (no default)
+
+For example:
+
+```
+docker run -d --name comanage-registry-database \
+  --network comanage-registry-internal-network \
+  -v /tmp/postgres-data:/var/lib/postgresql/data \
+  -e POSTGRES_USER=postgres \
+  -e POSTGRES_PASSWORD=a_password \
+  -e COMANAGE_REGISTRY_POSTGRES_DATABASE=registry \
+  -e COMANAGE_REGISTRY_POSTGRES_USER=registry_user \
+  -e COMANAGE_REGISTRY_POSTGRES_USER_PASSWORD=another_password \
+  comanage-registry-postgres
+```
+
+If you do not set a password for the superuser or the COmanage Registry user then
+any client with access to the container may connect to the database.

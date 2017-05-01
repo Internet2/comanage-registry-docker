@@ -1,4 +1,6 @@
-# COmanage Registry Dockerfile template
+#!/bin/bash -x
+
+# COmanage Registry PostgreSQL pg_hba.conf creation script
 #
 # Portions licensed to the University Corporation for Advanced Internet
 # Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -16,24 +18,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-FROM postgres
 
-ENV INIT_DIR /docker-entrypoint-initdb.d
+set -e
 
-RUN mkdir -p "$INIT_DIR"
+mkdir -p /etc/postgres
 
-COPY init-comanage-registry-database.sh "$INIT_DIR/init-comanage-registry-database.sh"
-COPY create-pg_hba.conf.sh "$INIT_DIR/create-pg_hba.conf.sh"
-
-RUN chmod 0755 "$INIT_DIR/init-comanage-registry-database.sh"
-RUN chmod 0755 "$INIT_DIR/create-pg_hba.conf.sh"
-
-ARG COMANAGE_REGISTRY_POSTGRES_DATABASE
-ARG COMANAGE_REGISTRY_POSTGRES_USER
-ARG COMANAGE_REGISTRY_POSTGRES_USER_PASSWORD
-
-ENV COMANAGE_REGISTRY_POSTGRES_DATABASE ${COMANAGE_REGISTRY_POSTGRES_DATABASE:-registry}
-ENV COMANAGE_REGISTRY_POSTGRES_USER ${COMANAGE_REGISTRY_POSTGRES_USER:-registry_user}
-ENV COMANAGE_REGISTRY_POSTGRES_USER_PASSWORD ${COMANAGE_REGISTRY_POSTGRES_USER_PASSWORD:-}
-
-CMD ["-c", "hba_file=/etc/postgres/pg_hba.conf"]
+cat > /etc/postgres/pg_hba.conf <<EOF
+local all postgres peer
+host $COMANAGE_REGISTRY_POSTGRES_DATABASE $COMANAGE_REGISTRY_POSTGRES_USER 127.0.0.1/32 md5
+host $COMANAGE_REGISTRY_POSTGRES_DATABASE $COMANAGE_REGISTRY_POSTGRES_USER samenet md5
+EOF
