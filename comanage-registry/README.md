@@ -104,7 +104,7 @@ class DATABASE_CONFIG {
 }
 EOF
 
-cat >> /opt/comanage-registry/Config/database.php <<"EOF"
+cat >> /opt/comanage-registry/Config/email.php <<"EOF"
 <?php
 
 class EmailConfig {
