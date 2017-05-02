@@ -1,0 +1,108 @@
+version: '3.1'
+
+services:
+
+    comanage-registry-database:
+        image: mariadb
+        volumes:
+            - /opt/mariadb-data:/var/lib/mysql
+        environment:
+            - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/mysql_root_password 
+            - MYSQL_DATABASE=registry
+            - MYSQL_USER=registry_user
+            - MYSQL_PASSWORD_FILE=/run/secrets/mysql_registry_user_password
+        secrets:
+            - mysql_root_password
+            - mysql_registry_user_password
+        networks:
+            - default
+        deploy:
+            replicas: 1
+
+    comanage-registry-ldap:
+        image: cilogon/comanage-registry-slapd-cilogon
+        volumes:
+            - /opt/slapd-data:/var/lib/ldap
+            - /opt/slapd-config:/etc/ldap/slapd.d
+        environment:
+            - SLAPD_CERT_FILE=/run/secrets/slapd_cert_file
+            - SLAPD_PRIVKEY_FILE=/run/secrets/slapd_privkey_file
+            - SLAPD_CHAIN_FILE=/run/secrets/slapd_chain_file
+            - OLC_ROOT_PW_FILE=/run/secrets/olc_root_pw
+            - OLC_SUFFIX=dc=cilogon,dc=org
+            - OLC_ROOT_DN=cn=admin,dc=cilogon,dc=org
+        secrets:
+            - slapd_cert_file
+            - slapd_privkey_file
+            - slapd_chain_file
+            - olc_root_pw
+        networks:
+            - default
+        ports:
+            - "636:636"
+            - "389:389"
+        deploy:
+            replicas: 1
+
+    comanage-registry:
+        image: cilogon/comanage-registry:2.0.0-rc3
+        volumes:
+            - /opt/comanage-registry-local:/local
+        environment:
+            - OIDC_CLIENT_ID_FILE=/run/secrets/oidc_client_id 
+            - OIDC_CLIENT_SECRET_FILE=/run/secrets/oidc_client_secret 
+            - OIDC_PROVIDER_METADATA_URL_FILE=/run/secrets/oidc_provider_metadata_url 
+            - OIDC_CRYPTO_PASSPHRASE_FILE=/run/secrets/oidc_crypto_passphrase 
+            - REGISTRY_HOST_FILE=/run/secrets/registry_host 
+            - HTTPS_CERT_FILE=/run/secrets/https_cert_file 
+            - HTTPS_PRIVKEY_FILE=/run/secrets/https_privkey_file 
+            - HTTPS_CHAIN_FILE=/run/secrets/https_chain_file 
+            - COMANAGE_REGISTRY_ADMIN_GIVEN_NAME=ScottCmpAdmin
+            - COMANAGE_REGISTRY_ADMIN_FAMILY_NAME=Koranda
+            - COMANAGE_REGISTRY_ADMIN_USERNAME=http://cilogon.org/serverA/users/22981
+        secrets:
+            - oidc_client_id
+            - oidc_client_secret
+            - oidc_provider_metadata_url
+            - oidc_crypto_passphrase
+            - registry_host
+            - https_cert_file
+            - https_privkey_file
+            - https_chain_file
+        networks:
+            - default
+        ports:
+            - "80:80"
+            - "443:443"
+        deploy:
+            replicas: 1
+
+secrets:
+    mysql_root_password:
+        external: true
+    mysql_registry_user_password:
+        external: true  
+    slapd_cert_file:
+        external: true
+    slapd_privkey_file:
+        external: true
+    slapd_chain_file:
+        external: true
+    olc_root_pw:
+        external: true
+    oidc_client_id:
+        external: true
+    oidc_client_secret:
+        external: true
+    oidc_provider_metadata_url:
+        external: true
+    oidc_crypto_passphrase:
+        external: true
+    registry_host:
+        external: true
+    https_cert_file:
+        external: true
+    https_privkey_file:
+        external: true
+    https_chain_file:
+        external: true
