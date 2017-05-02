@@ -92,6 +92,14 @@ login    : registry.user
 password : password
 ```
 
+The following sections in the [COmanage Registry Technical Manual](https://spaces.internet2.edu/display/COmanage/COmanage+Technical+Manual)
+may be helpful:
+
+* [Setting Up Your First CO](https://spaces.internet2.edu/x/F4DPAg)
+* [Understanding Registry People Types](https://spaces.internet2.edu/x/RgGnAQ)
+* [Registry Administrators](https://spaces.internet2.edu/x/EIDPAg)
+* [Registry Enrollment Flow Configuration](https://spaces.internet2.edu/x/RAGnAQ)
+
 To stop the containers and destroy the network:
 
 ```

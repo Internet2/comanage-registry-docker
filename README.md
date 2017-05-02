@@ -30,7 +30,8 @@ COmanage Registry and deployments ready for production.
 
 ## What is here
 
-* [Simple deployment for evaluation, no persistence](simple-no-persistence/README.md)
+* [Simple deployment for evaluation, no persistence](recipes/simple-no-persistence/README.md)
+* [Simple deployment for evaluation with persistence](recipes/simple-with-persistence/README.md)
 * [Dockerfile templates](#Dockerfile-templates)
 
 
