@@ -24,9 +24,11 @@ RUN mkdir -p "$INIT_DIR"
 
 COPY init-comanage-registry-database.sh "$INIT_DIR/init-comanage-registry-database.sh"
 COPY create-pg_hba.conf.sh "$INIT_DIR/create-pg_hba.conf.sh"
+COPY comanage-registry-postgres-entrypoint.sh /usr/local/bin/comanage-registry-postgres-entrypoint.sh
 
 RUN chmod 0755 "$INIT_DIR/init-comanage-registry-database.sh"
 RUN chmod 0755 "$INIT_DIR/create-pg_hba.conf.sh"
+RUN chmod 0755 /usr/local/bin/comanage-registry-postgres-entrypoint.sh
 
 ARG COMANAGE_REGISTRY_POSTGRES_DATABASE
 ARG COMANAGE_REGISTRY_POSTGRES_USER
@@ -35,5 +37,7 @@ ARG COMANAGE_REGISTRY_POSTGRES_USER_PASSWORD
 ENV COMANAGE_REGISTRY_POSTGRES_DATABASE ${COMANAGE_REGISTRY_POSTGRES_DATABASE:-registry}
 ENV COMANAGE_REGISTRY_POSTGRES_USER ${COMANAGE_REGISTRY_POSTGRES_USER:-registry_user}
 ENV COMANAGE_REGISTRY_POSTGRES_USER_PASSWORD ${COMANAGE_REGISTRY_POSTGRES_USER_PASSWORD:-}
+
+ENTRYPOINT ["/usr/local/bin/comanage-registry-postgres-entrypoint.sh"]
 
 CMD ["-c", "hba_file=/etc/postgres/pg_hba.conf"]

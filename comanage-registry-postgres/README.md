@@ -74,5 +74,20 @@ docker run -d --name comanage-registry-database \
   comanage-registry-postgres
 ```
 
+You may also set environment variables that point to files from which to read
+the same details, for example
+
+```
+docker run -d --name comanage-registry-database \
+  --network comanage-registry-internal-network \
+  -v /tmp/postgres-data:/var/lib/postgresql/data \
+  -e POSTGRES_USER_FILE=/run/secrets/postgres_user \
+  -e POSTGRES_PASSWORD_FILE=/run/secrets/postgres_password \
+  -e COMANAGE_REGISTRY_POSTGRES_DATABASE_FILE=/run/secrets/comanage_registry_postgres_database \
+  -e COMANAGE_REGISTRY_POSTGRES_USER_FILE=/run/secrets/comanage_registry_postgres_user \
+  -e COMANAGE_REGISTRY_POSTGRES_USER_PASSWORD_FILE=/run/secrets/comanage_registry_postgres_user_password \
+  comanage-registry-postgres
+```
+
 If you do not set a password for the superuser or the COmanage Registry user then
 any client with access to the container may connect to the database.
