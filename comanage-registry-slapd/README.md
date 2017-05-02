@@ -93,3 +93,21 @@ docker run -d --name comanage-registry-slapd \
   -p 389:389 -p 636:636 \
   sphericalcowgroup/comanage-registry-slapd
 ```
+
+You may also use environment variables that point to files, for example
+
+```
+docker run -d --name comanage-registry-slapd \
+  --network comanage-registry-internal-network \
+  -v /tmp/slapd-data:/var/lib/ldap \
+  -v /tmp/slapd-config:/etc/ldap/slapd.d \
+  -e SLAPD_CERT_FILE=/run/secrets/slapd_cert_file \
+  -e SLAPD_PRIVKEY_FILE=/run/secrets/slapd_privkey_file \
+  -e SLAPD_CHAIN_FILE=/run/secrets/slapd_chain_file \
+  -e OLC_SUFFIX=dc=my,dc=org \
+  -e OLC_ROOT_DN=cn=admin,dc=my,dc=org \
+  -e OLC_ROOT_PW_FILE=/run/secrets/olc_root_pw \
+  -p 389:389 -p 636:636 \
+  sphericalcowgroup/comanage-registry-slapd
+```
+

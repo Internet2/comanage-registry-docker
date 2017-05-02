@@ -21,6 +21,23 @@
 
 set -e
 
+# Copy secrets and other deployment specific details into place.
+if [[ -f "${SLAPD_CERT_FILE}" ]]; then
+    cp ${SLAPD_CERT_FILE} /etc/ldap/slapd.crt
+fi
+
+if [[ -f "${SLAPD_PRIVKEY_FILE}" ]]; then
+    cp ${SLAPD_PRIVKEY_FILE} /etc/ldap/slapd.key
+fi
+
+if [[ -f "${SLAPD_CHAIN_FILE}" ]]; then
+    cp ${SLAPD_CHAIN_FILE} /etc/ldap/slapd.ca.crt
+fi
+
+if [[ -f "${OLC_ROOT_PW_FILE}" ]]; then
+    OLC_ROOT_PW=`cat ${OLC_ROOT_PW_FILE}`
+fi
+
 # Only bootstrap the directory if it does not already exist.
 if [[ ! -f /var/lib/ldap/data.mdb && ! -f /etc/ldap/slapd.d/cn=config.ldif ]]; then
     # Parse the domain, rdn, and the value of rdn from the OLC_SUFFIX
