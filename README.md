@@ -30,9 +30,10 @@ COmanage Registry and deployments ready for production.
 
 ## What is here
 
+* [Dockerfile templates](#Dockerfile-templates)
 * [Simple deployment for evaluation, no persistence](recipes/simple-no-persistence/README.md)
 * [Simple deployment for evaluation with persistence](recipes/simple-with-persistence/README.md)
-* [Dockerfile templates](#Dockerfile-templates)
+* [Production deployment using Docker stacks with mod_auth_openidc and MariaDB](recipes/production-mod-auth-openidc-mariadb/README.md)
 
 
 ## Dockerfile templates
