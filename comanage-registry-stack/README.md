@@ -19,29 +19,25 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 
-# Docker Compose Example for COmanage Registry 
+# Docker Stack Deploy for COmanage Registry 
 
-This is an example Docker Compose file to deploy COmanage
-Registry with the Shibboleth Native SP for Apache HTTP Server
-and a PostgreSQL database.
+This is an example Docker compose file to deploy COmanage
+Registry with mod_auth_openidc for Apache HTTP Server
+for authentication and a MariaDB database using Docker stack deploy.
 
 See the individual image Dockerfile templates and README
 files for details on how to prepare the volumes and the
 necessary contents including the COmanage Registry 
-configuration and the Shibboleth SP configuration.
-
-Change the tag from `COMANAGE_REGISTRY_VERSION-shibboleth-sp`
-to `COMANAGE_REGISTRY_VERSION-basic-auth` to quickly deploy
-without the need for federation.
+configuration.
 
 ## Deploy
 
 ```
-docker-compose up
+docker stack deploy --compose-file comanage-registry-mod-auth-openidc-mariadb-stack.yml comanage-registry
 ```
 
 ## Tear Down
 
 ```
-docker-compose down
+docker stack rm comanage-registry
 ```

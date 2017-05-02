@@ -20,7 +20,7 @@ services:
             replicas: 1
 
     comanage-registry-ldap:
-        image: cilogon/comanage-registry-slapd-cilogon
+        image: sphericalcowgroup/comanage-registry-slapd
         volumes:
             - /opt/slapd-data:/var/lib/ldap
             - /opt/slapd-config:/etc/ldap/slapd.d
@@ -29,8 +29,8 @@ services:
             - SLAPD_PRIVKEY_FILE=/run/secrets/slapd_privkey_file
             - SLAPD_CHAIN_FILE=/run/secrets/slapd_chain_file
             - OLC_ROOT_PW_FILE=/run/secrets/olc_root_pw
-            - OLC_SUFFIX=dc=cilogon,dc=org
-            - OLC_ROOT_DN=cn=admin,dc=cilogon,dc=org
+            - OLC_SUFFIX=dc=my,dc=org
+            - OLC_ROOT_DN=cn=admin,dc=my,dc=org
         secrets:
             - slapd_cert_file
             - slapd_privkey_file
@@ -45,7 +45,7 @@ services:
             replicas: 1
 
     comanage-registry:
-        image: cilogon/comanage-registry:2.0.0-rc3
+        image: sphericalcowgroup/comanage-registry:hotfix-2.0.x-mod-auth-openidc
         volumes:
             - /opt/comanage-registry-local:/local
         environment:
