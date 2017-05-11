@@ -45,7 +45,7 @@ htpasswd /opt/comanage-registry-passwords registry.user
 ```
 
 You may edit that file later to either change the password or add
-credenitals for more users.
+credentials for more users.
 
 Next create an internal network for the containers to use:
 
