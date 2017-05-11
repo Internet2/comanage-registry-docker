@@ -40,4 +40,4 @@ ENV COMANAGE_REGISTRY_POSTGRES_USER_PASSWORD ${COMANAGE_REGISTRY_POSTGRES_USER_P
 
 ENTRYPOINT ["/usr/local/bin/comanage-registry-postgres-entrypoint.sh"]
 
-CMD ["-c", "hba_file=/etc/postgres/pg_hba.conf"]
+CMD ["postgres"]
