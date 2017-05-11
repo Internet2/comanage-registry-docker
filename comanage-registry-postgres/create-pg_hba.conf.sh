@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash 
 
 # COmanage Registry PostgreSQL pg_hba.conf creation script
 #
