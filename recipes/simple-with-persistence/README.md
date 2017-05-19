@@ -41,7 +41,7 @@ Next use the `htpasswd` command to generate a password file to be used
 with basic authentication. When prompted enter your chose password (twice):
 
 ```
-htpasswd /opt/comanage-registry-passwords registry.user
+htpasswd /opt/comanage-registry-passwords registry.admin
 ```
 
 You may edit that file later to either change the password or add
@@ -108,7 +108,7 @@ https://localhost/registry/
 You will need to click through browser warnings about self-signed
 certificates for HTTPS.
 
-Click "Login" to login to the registry. For credentials use `registry.user`
+Click "Login" to login to the registry. For credentials use `registry.admin`
 and the password you previously set using the `htpasswd` command.
 
 To stop the containers:
