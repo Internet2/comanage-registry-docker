@@ -38,6 +38,7 @@ RUN apt-get update && apt-get install -y \
          ssl-cert \
          wget \
          zlib1g \
+         libpcre3-dev \
       && docker-php-ext-configure pgsql -with-pgsql=/usr/local/pgsql \
       && docker-php-ext-configure ldap --with-libdir=lib/x86_64-linux-gnu \
       && docker-php-ext-configure mysqli --with-mysqli=/usr/bin/mysql_config \
