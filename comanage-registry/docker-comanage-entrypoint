@@ -26,6 +26,96 @@ else
     OUTPUT=/dev/null
 fi
 
+# Configuration details that may be injected through environment
+# variables or the contents of files.
+
+injectable_config_vars=( 
+    COMANAGE_REGISTRY_DATASOURCE
+    COMANAGE_REGISTRY_DATABASE
+    COMANAGE_REGISTRY_DATABASE_HOST
+    COMANAGE_REGISTRY_DATABASE_USER
+    COMANAGE_REGISTRY_DATABASE_USER_PASSWORD
+    COMANAGE_REGISTRY_EMAIL_FROM
+    COMANAGE_REGISTRY_EMAIL_TRANSPORT
+    COMANAGE_REGISTRY_EMAIL_HOST
+    COMANAGE_REGISTRY_EMAIL_PORT
+    COMANAGE_REGISTRY_EMAIL_ACCOUNT
+    COMANAGE_REGISTRY_EMAIL_ACCOUNT_PASSWORD
+    COMANAGE_REGISTRY_SECURITY_SALT
+    COMANAGE_REGISTRY_SECURITY_SEED
+    HTTPS_CERT_FILE
+    HTTPS_PRIVKEY_FILE
+    HTTPS_CHAIN_FILE
+)
+
+# If the file associated with a configuration variable is present then 
+# read the value from it into the appropriate variable. So for example
+# if the variable COMANAGE_REGISTRY_DATASOURCE_FILE exists and its
+# value points to a file on the file system then read the contents
+# of that file into the variable COMANAGE_REGISTRY_DATASOURCE.
+
+for config_var in "${injectable_config_vars[@]}"
+do
+    eval file_name=\$"${config_var}_FILE";
+
+    if [ -e "$file_name" ]; then
+        declare "${config_var}"=`cat $file_name`
+    fi
+done
+
+# Make sure the directory structure we need is available
+# in the data volume for $COMANAGE_REGISTRY_DIR/local
+mkdir -p "$COMANAGE_REGISTRY_DIR/local/Config"
+mkdir -p "$COMANAGE_REGISTRY_DIR/local/Plugin"
+mkdir -p "$COMANAGE_REGISTRY_DIR/local/View/Pages/public"
+mkdir -p "$COMANAGE_REGISTRY_DIR/local/webroot/img"
+
+# If the COmanage Registry database configuration file does not exist
+# then try to create it from injected information with reasonable defaults
+# that aid simple evaluation deployments.
+if [ ! -e "$COMANAGE_REGISTRY_DIR/local/Config/database.php" ]; then
+    cat >> "$COMANAGE_REGISTRY_DIR/local/Config/database.php" <<EOF
+<?php
+
+class DATABASE_CONFIG {
+
+  public \$default = array(
+    'datasource' => '${COMANAGE_REGISTRY_DATASOURCE:-Database/Postgres}',
+    'persistent' => false,
+    'host' => '${COMANAGE_REGISTRY_DATABASE_HOST:-comanage-registry-database}',
+    'login' => '${COMANAGE_REGISTRY_DATABASE_USER:-registry_user}',
+    'password' => '${COMANAGE_REGISTRY_DATABASE_USER_PASSWORD:-password}',
+    'database' => '${COMANAGE_REGISTRY_DATABASE:-registry}',
+    'prefix' => 'cm_',
+  );
+
+}
+EOF
+fi
+
+# If the COmanage Registry email configuration file does not exist
+# then try to create it from injected information with reasonable defaults
+# that aid simple evaluation deployments.
+email_config="$COMANAGE_REGISTRY_DIR/local/Config/email.php"
+
+if [ ! -e "$email_config" ]; then
+    cat >> "$email_config" <<EOF
+<?php
+
+class EmailConfig {
+
+  public \$default = array(
+    'from' => ${COMANAGE_REGISTRY_EMAIL_FROM:-array('account@gmail.com' => 'Registry')},
+    'transport' => '${COMANAGE_REGISTRY_EMAIL_TRANSPORT:-Smtp}',
+    'host' => '${COMANAGE_REGISTRY_EMAIL_HOST:-tls://smtp.gmail.com}',
+    'port' => ${COMANAGE_REGISTRY_EMAIL_PORT:-465},
+    'username' => '${COMANAGE_REGISTRY_EMAIL_ACCOUNT:-account@gmail.com}',
+    'password' => '${COMANAGE_REGISTRY_EMAIL_ACCOUNT_PASSWORD:-password}'
+  );
+}
+EOF
+fi
+
 # Loop until we are able to open a connection to the database.
 DATABASE_TEST_SCRIPT="$COMANAGE_REGISTRY_DIR/app/Console/Command/DatabaseTestShell.php"
 
@@ -103,9 +193,20 @@ if [ $setup_already -eq 0 ]; then
                          --admin-family-name "${COMANAGE_REGISTRY_ADMIN_FAMILY_NAME}" \
                          --admin-username "${COMANAGE_REGISTRY_ADMIN_USERNAME}" \
                          --enable-pooling "${COMANAGE_REGISTRY_ENABLE_POOLING}" > "$OUTPUT" 2>&1
+    AUTO_GENERATED_SECURITY=1
 fi
 
 popd > "$OUTPUT" 2>&1
+
+# If COmanage Registry CakePHP security salt and seed have been
+# injected and the files do not otherwise exist create them.
+if [[ -n "$COMANAGE_REGISTRY_SECURITY_SALT" && ( -n "$AUTO_GENERATED_SECURITY" || ! -e "$COMANAGE_REGISTRY_DIR/local/Config/security.salt" ) ]]; then
+    echo "$COMANAGE_REGISTRY_SECURITY_SALT" > "$COMANAGE_REGISTRY_DIR/local/Config/security.salt"
+fi
+
+if [[ -n "$COMANAGE_REGISTRY_SECURITY_SEED" && ( -n "$AUTO_GENERATED_SECURITY" || ! -e "$COMANAGE_REGISTRY_DIR/local/Config/security.seed" ) ]]; then
+    echo "$COMANAGE_REGISTRY_SECURITY_SEED" > "$COMANAGE_REGISTRY_DIR/local/Config/security.seed"
+fi
 
 # We always run upgradeVersion since it will not make any changes
 # if the current and target versions are the same or if
@@ -120,12 +221,28 @@ popd > "$OUTPUT" 2>&1
 # set the ownership of those files appropriately.
 chown -R www-data:www-data "$COMANAGE_REGISTRY_DIR/app/tmp"
 
-# Make sure the directory structure we need is available
-# in the data volume for $COMANAGE_REGISTRY_DIR/local
-mkdir -p "$COMANAGE_REGISTRY_DIR/local/Config"
-mkdir -p "$COMANAGE_REGISTRY_DIR/local/Plugin"
-mkdir -p "$COMANAGE_REGISTRY_DIR/local/View/Pages/public"
-mkdir -p "$COMANAGE_REGISTRY_DIR/local/webroot/img"
+# If defined use configured location of Apache HTTP Server 
+# HTTPS certificate, key, and CA chain files.
+if [ -n "$HTTPS_CERT_FILE" ]; then
+    rm -f /etc/apache2/cert.pem
+    cp "$HTTPS_CERT_FILE" /etc/apache2/cert.pem
+    chown www-data /etc/apache2/cert.pem
+    chmod 0644 /etc/apache2/cert.pem
+fi
+
+if [ -n "$HTTPS_PRIVKEY_FILE" ]; then
+    rm -f /etc/apache2/privkey.pem
+    cp "$HTTPS_PRIVKEY_FILE" /etc/apache2/privkey.pem
+    chown www-data /etc/apache2/privkey.pem
+    chmod 0600 /etc/apache2/privkey.pem
+fi
+
+if [ -n "$HTTPS_CHAIN_FILE" ]; then
+    rm -f /etc/apache2/chain.pem
+    cp "$HTTPS_CHAIN_FILE" /etc/apache2/chain.pem
+    chown www-data /etc/apache2/chain.pem
+    chmod 0644 /etc/apache2/chain.pem
+fi
 
 # first arg is `-f` or `--some-option`
 if [ "${1#-}" != "$1" ]; then
