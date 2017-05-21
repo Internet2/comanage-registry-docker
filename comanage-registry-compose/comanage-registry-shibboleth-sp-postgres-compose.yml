@@ -1,0 +1,63 @@
+version: '3.1'
+
+services:
+
+    comanage-registry-database:
+        image: comanage-registry-postgres
+        volumes:
+            - /opt/comanage-registry-deployment/postgres-data:/var/lib/postgresql/data
+            - /opt/comanage-registry-deployment/secrets:/run/secrets
+        environment:
+            - POSTGRES_USER=postgres
+            - POSTGRES_PASSWORD_FILE=/run/secrets/postgres_password
+            - COMANAGE_REGISTRY_POSTGRES_DATABASE=registry
+            - COMANAGE_REGISTRY_POSTGRES_USER=registry_user
+            - COMANAGE_REGISTRY_POSTGRES_USER_PASSWORD_FILE=/run/secrets/comanage_registry_postgres_user_password
+
+    comanage-registry-ldap:
+        image: comanage-registry-slapd
+        volumes:
+            - /opt/comanage-registry-deployment/slapd-data:/var/lib/ldap
+            - /opt/comanage-registry-deployment/slapd-config:/etc/ldap/slapd.d
+            - /opt/comanage-registry-deployment/secrets:/run/secrets
+        environment:
+            - SLAPD_CERT_FILE=/run/secrets/slapd_cert_file
+            - SLAPD_PRIVKEY_FILE=/run/secrets/slapd_privkey_file
+            - SLAPD_CHAIN_FILE=/run/secrets/slapd_chain_file
+            - OLC_ROOT_PW_FILE=/run/secrets/olc_root_pw
+            - OLC_SUFFIX=dc=my,dc=org
+            - OLC_ROOT_DN=cn=admin,dc=my,dc=org
+        ports:
+            - "636:636"
+            - "389:389"
+
+    comanage-registry:
+        image: comanage-registry:hotfix-2.0.x-100a4b-shibboleth-sp
+        volumes:
+            - /opt/comanage-registry-deployment/secrets:/run/secrets
+        environment:
+            - COMANAGE_REGISTRY_DATASOURCE=Database/Postgres
+            - COMANAGE_REGISTRY_DATABASE=registry
+            - COMANAGE_REGISTRY_DATABASE_HOST=comanage-registry-database
+            - COMANAGE_REGISTRY_DATABASE_USER=registry_user
+            - COMANAGE_REGISTRY_DATABASE_USER_PASSWORD_FILE=/run/secrets/comanage_registry_postgres_user_password
+            - COMANAGE_REGISTRY_EMAIL_FROM=array('account@gmail.com' => 'Registry')
+            - COMANAGE_REGISTRY_EMAIL_TRANSPORT=Smtp
+            - COMANAGE_REGISTRY_EMAIL_HOST=tls://smtp.gmail.com
+            - COMANAGE_REGISTRY_EMAIL_PORT=465
+            - COMANAGE_REGISTRY_EMAIL_ACCOUNT=account@gmail.com
+            - COMANAGE_REGISTRY_EMAIL_ACCOUNT_PASSWORD_FILE=/run/secrets/comanage_registry_email_account_password
+            - COMANAGE_REGISTRY_SECURITY_SALT_FILE=/run/secrets/comanage_registry_security_salt
+            - COMANAGE_REGISTRY_SECURITY_SEED_FILE=/run/secrets/comanage_registry_security_seed
+            - SHIBBOLETH_SP_ENTITY_ID=https://my.org/shibboleth
+            - SHIBBOLETH_SP_CERT=/run/secrets/shibboleth_sp_cert_file
+            - SHIBBOLETH_SP_PRIVKEY=/run/secrets/shibboleth_sp_privkey_file
+            - SHIBBOLETH_SP_SAMLDS_URL=https://my.org/registry/pages/eds/index
+            - SHIBBOLETH_SP_METADATA_PROVIDER_XML_FILE=/run/secrets/shibboleth_sp_metadata_provider_xml
+            - HTTPS_CERT_FILE=/run/secrets/https_cert_file
+            - HTTPS_PRIVKEY_FILE=/run/secrets/https_privkey_file
+            - HTTPS_CHAIN_FILE=/run/secrets/https_chain_file
+
+        ports:
+            - "80:80"
+            - "443:443"
