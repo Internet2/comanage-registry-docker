@@ -34,6 +34,7 @@ COmanage Registry and deployments ready for production.
 * [Simple deployment for evaluation, no persistence](recipes/simple-no-persistence/README.md)
 * [Simple deployment for evaluation with persistence](recipes/simple-with-persistence/README.md)
 * [Production deployment using Docker stacks with mod_auth_openidc and MariaDB](recipes/production-mod-auth-openidc-mariadb/README.md)
+* [Production deployment using docker-compose with Shibboleth SP and PostgreSQL](recipes/production-shibboleth-sp-postgres/README.md)
 
 
 ## Dockerfile templates
@@ -44,4 +45,6 @@ COmanage Registry and deployments ready for production.
 * [Example PostgreSQL](comanage-registry-postgres/README.md) image for use with COmanage Registry
 * [Example MariaDB](comanage-registry-mariadb/README.md) image for use with COmanage Registry
 * [Example OpenLDAP slapd](comanage-registry-slapd/README.md) image for use with COmanage Registry
-* [Example Docker Compose](compose/README.md) file for deploying COmanage Registry
+* [Example Docker stack compose file](comanage-registry-stack/README.md)
+* [Example docker-compose file](comanage-registry-compose/README.md)
+
