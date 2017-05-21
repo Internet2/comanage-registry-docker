@@ -142,6 +142,7 @@ RUN /usr/sbin/useradd --system _shibd \
       && chown _shibd:_shibd /var/run/shibboleth \
       && chown -R _shibd:_shibd /opt/shibboleth-sp/var \
       && cp -a /opt/shibboleth-sp/etc/shibboleth /etc/shibboleth \
+      && rm -f /etc/shibboleth/shibboleth2.xml \
       && chown _shibd:_shibd /etc/shibboleth/sp-cert.pem \
       && chown _shibd:_shibd /etc/shibboleth/sp-key.pem \
       && cd /opt/shibboleth-sp/etc \
@@ -151,7 +152,6 @@ RUN /usr/sbin/useradd --system _shibd \
       && apt-get install -y --no-install-recommends supervisor \
       && mkdir -p /var/log/supervisor
 
-COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 ARG COMANAGE_REGISTRY_VERSION=%%COMANAGE_REGISTRY_VERSION%%
 ARG COMANAGE_REGISTRY_SRC_URL=https://github.com/Internet2/comanage-registry/archive/$COMANAGE_REGISTRY_VERSION.tar.gz
@@ -173,6 +173,7 @@ RUN apt-get update && apt-get install -y \
          ssl-cert \
          wget \
          zlib1g \
+         libpcre3-dev \
       && docker-php-ext-configure pgsql -with-pgsql=/usr/local/pgsql \
       && docker-php-ext-configure ldap --with-libdir=lib/x86_64-linux-gnu \
       && docker-php-ext-configure mysqli --with-mysqli=/usr/bin/mysql_config \
@@ -221,7 +222,11 @@ RUN mkdir -p "$COMANAGE_REGISTRY_DIR" \
       && ln -s /etc/ssl/certs/ssl-cert-snakeoil.pem chain.pem  \
       && sed -ie 's/'"'"'engine'"'"' => '"'"'FileLog'"'"'/'"'"'engine'"'"' => '"'"'ConsoleLog'"'"'/' "$COMANAGE_REGISTRY_DIR/app/Config/bootstrap.php" 
 
+COPY shibboleth2.xml.template /etc/shibboleth/shibboleth2.xml.template
+COPY supervisord.conf /usr/local/etc/supervisord.conf
+
 COPY docker-comanage-entrypoint /usr/local/bin/
+COPY docker-comanage-shibboleth-sp-entrypoint /usr/local/bin/
 
 # expose COmanage Registry local directory
 VOLUME ["/local"]
@@ -246,4 +251,4 @@ ENV COMANAGE_REGISTRY_ENABLE_POOLING ${COMANAGE_REGISTRY_ENABLE_POOLING:-No}
 # expose Shibboleth SP configuration files
 VOLUME ["/etc/shibboleth"]
 
-ENTRYPOINT ["/usr/bin/supervisord"]
+ENTRYPOINT ["/usr/bin/supervisord", "-c", "/usr/local/etc/supervisord.conf"]
