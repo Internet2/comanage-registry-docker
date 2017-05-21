@@ -32,7 +32,7 @@ services:
             - "389:389"
 
     comanage-registry:
-        image: comanage-registry:hotfix-2.0.x-100a4b-shibboleth-sp
+        image: comanage-registry:hotfix-2.0.x-shibboleth-sp
         volumes:
             - /opt/comanage-registry-deployment/secrets:/run/secrets
         environment:
