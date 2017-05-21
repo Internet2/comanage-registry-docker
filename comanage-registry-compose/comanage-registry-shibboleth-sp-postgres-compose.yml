@@ -36,12 +36,15 @@ services:
         volumes:
             - /opt/comanage-registry-deployment/secrets:/run/secrets
         environment:
+            - COMANAGE_REGISTRY_ADMIN_GIVEN_NAME=Karel
+            - COMANAGE_REGISTRY_ADMIN_FAMILY_NAME=Novak
+            - COMANAGE_REGISTRY_ADMIN_USERNAME=karel.novak@my.org
             - COMANAGE_REGISTRY_DATASOURCE=Database/Postgres
             - COMANAGE_REGISTRY_DATABASE=registry
             - COMANAGE_REGISTRY_DATABASE_HOST=comanage-registry-database
             - COMANAGE_REGISTRY_DATABASE_USER=registry_user
             - COMANAGE_REGISTRY_DATABASE_USER_PASSWORD_FILE=/run/secrets/comanage_registry_postgres_user_password
-            - COMANAGE_REGISTRY_EMAIL_FROM=array('account@gmail.com' => 'Registry')
+            - COMANAGE_REGISTRY_EMAIL_FROM='account@gmail.com'
             - COMANAGE_REGISTRY_EMAIL_TRANSPORT=Smtp
             - COMANAGE_REGISTRY_EMAIL_HOST=tls://smtp.gmail.com
             - COMANAGE_REGISTRY_EMAIL_PORT=465
