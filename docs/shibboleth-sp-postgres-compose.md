@@ -229,6 +229,11 @@ If you have properly federated the Shibboleth SP with the IdP that the
 first platform administrator will use you can click on "Login" and be
 redirected to the IdP for authentication.
 
+Production deployments need to send email, usually using an authenticated
+account on a SMTP server. You may configure the details for your SMTP server
+by editing the file `email.php` that the entrypoint script automatically
+creates in `/docker/srv/comanage-registry/local/Config`.
+
 To stop the services run
 
 ```
