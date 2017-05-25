@@ -51,11 +51,7 @@ component.
 | COMANAGE_REGISTRY_DATASOURCE | database type | Database/Postgres | Database/Postgres | Database/Mysql |
 | COMANAGE_REGISTRY_DATABASE_USER| database user | registry_user | comanage | comanage_user |
 | COMANAGE_REGISTRY_DATABASE_USER_PASSWORD | database user password | password | AFH9OiyuowiY3Wq6qX0j | qVcsJPo7$@ |
-| COMANAGE_REGISTRY_EMAIL_HOST | SMTP email host | tls://smtp.gmail.com | tls://some.server.edu | some.server.edu |
-| COMANAGE_REGISTRY_EMAIL_PORT | SMTP email port | 465 | 465 | 25 |
-| COMANAGE_REGISTRY_EMAIL_FROM | From: address | account@gmail.com | registry@some.org | comanage@school.edu |
-| COMANAGE_REGISTRY_EMAIL_ACCOUNT | SMTP email account | account@gmail.com | service_account | some_user |
-| COMANAGE_REGISTRY_EMAIL_ACCOUNT_PASSWORD | SMTP email account password | password | jI%ASJ!1U | airwu883Y |
+| COMANAGE_REGISTRY_ADMIN_USERNAME | Registry admin login name | registry.admin | admin | karel.novak@my.org |
 
 ### PostgreSQL
 
