@@ -28,7 +28,9 @@ configured in a number of different ways.
 ##### Table of Contents
 [Environment Variables](#environ)
 [Secrets](#secrets)
+[Full Control](#full)
 
+<a name="environ"/>
 ## Environment Variables
 
 Most deployment details may be set using environment variables set for the container. 
@@ -81,6 +83,7 @@ Coming soon...
 ### OpenLDAP slapd
 Coming soon...
 
+<a name="secrets"/>
 ## Secrets
 
 Some deployers prefer not to use environment variables to inject secrets to avoid having
@@ -236,6 +239,7 @@ If no files are configured the container uses a default self-signed certificate
 
 Coming soon...
 
+<a name="full"/>
 ## Full control
 
 Deployers needing full control may inject configuration and deployment details directly.
