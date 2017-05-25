@@ -26,12 +26,11 @@ The services deployed in containers instantiated using images built from this re
 configured in a number of different ways.
 
 ##### Table of Contents
-[Environment Variables](#environ)
-[Secrets](#secrets)
-[Full Control](#full)
+* [Environment Variables](#environ)
+* [Secrets](#secrets)
+* [Full Control](#full)
 
-<a name="environ"/>
-## Environment Variables
+## Environment Variables <a name="environ"></a>
 
 Most deployment details may be set using environment variables set for the container. 
 The entrypoint scripts will attempt to use values from environment variables and if not
@@ -83,8 +82,7 @@ Coming soon...
 ### OpenLDAP slapd
 Coming soon...
 
-<a name="secrets"/>
-## Secrets
+## Secrets <a name="secrets"></a>
 
 Some deployers prefer not to use environment variables to inject secrets to avoid having
 secrets in YAML files saved for example in a code repository.
@@ -239,8 +237,7 @@ If no files are configured the container uses a default self-signed certificate
 
 Coming soon...
 
-<a name="full"/>
-## Full control
+## Full control <a name="full"></a>
 
 Deployers needing full control may inject configuration and deployment details directly.
 The entrypoint scripts will *not* overwrite any details found so directly injected
