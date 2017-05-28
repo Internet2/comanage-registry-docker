@@ -70,13 +70,24 @@ component.
 | MYSQL_PASSWORD | registry database user password | none | 9vmKxJGwD!iU | o8rhqq4Sr%R |
 
 ### Shibboleth SP
-Coming soon...
+
+| Environment Variable | Description | Default | Example 1 | Example 2 |
+| -------------------- | ----------- | --------- | --------- | ------- |
+| SHIBBOLETH_SP_ENTITY_ID | entityID for SP | https://comanage.registry/shibboleth | https://my.org/comanage | https://registry.my.org/shibboleth |
+| SHIBBOLETH_SP_SAMLDS_URL | URL for SAML IdP discovery service | https://localhost/registry/pages/eds/index | https://my.org/registry/pages/eds/index | https://discovery.my.org |
+| SHIBBOLETH_SP_CERT | SAML certificate | self-signed per-image default |||
+| SHIBBOLETH_SP_PRIVKEY | SAML private key | self-signed per-image default |||
+| SHIBBOLETH_SP_METADATA_PROVIDER_XML | \<MetadataProvider\> element |  none (empty) | see [Shib SP documenation]() | |
 
 ### mod_auth_oidc
 Coming soon...
 
 ### OpenLDAP slapd
-Coming soon...
+| Environment Variable | Description | Default | Example 1 | Example 2 |
+| -------------------- | ----------- | --------- | --------- | ------- |
+| OLC_SUFFIX | Suffix for the directory | dc=my,dc=org | dc=some,dc=edu | o=unit,dc=my,dc=org |
+| OLC_ROOT_DN | DN for the administrator | cn=admin,dc=my,dc=org | cn=admin,dc=some,dc=edu | cn=admin,ou=service,dc=my,dc=org |
+| OLC_ROOT_PW | password for root DN | password | ow&lveo13tH | eaFXZeOs7AK3iJ9w9d0a | akw13%!UU83 |
 
 ## Secrets <a name="secrets"></a>
 
@@ -231,7 +242,56 @@ If no files are configured the container uses a default self-signed certificate
 
 ### OpenLDAP slapd
 
-Coming soon...
+The certificate, private key, and CA signing file or chain file used for TLS
+(port 636 by default) may
+be injected into the OpenLDAP slapd container using environment variables
+to point to files mounted into the container. 
+
+For example:
+
+```
+version: '3.1'
+
+services:
+
+    comanage-registry-database:
+        image: mariadb
+        volumes:
+            - /docker/var/lib/mysql:/var/lib/mysql
+        environment:
+            - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/mysql_root_password
+            - MYSQL_DATABASE=registry
+            - MYSQL_USER=registry_user
+            - MYSQL_PASSWORD_FILE=/run/secrets/mysql_password
+
+    comanage-registry-ldap:
+        image: comanage-registry-slapd
+        volumes:
+            - /docker/var/lib/ldap:/var/lib/ldap
+            - /docker/etc/ldap/slapd.d:/etc/ldap/slapd.d
+        environment:
+            - SLAPD_CERT_FILE=/run/secrets/slapd_cert_file
+            - SLAPD_PRIVKEY_FILE=/run/secrets/slapd_privkey_file
+            - SLAPD_CHAIN_FILE=/run/secrets/slapd_chain_file
+            - OLC_ROOT_PW_FILE=/run/secrets/olc_root_pw
+            - OLC_SUFFIX=dc=my,dc=org
+            - OLC_ROOT_DN=cn=admin,dc=my,dc=org
+        ports:
+            - "636:636"
+            - "389:389"
+
+    comanage-registry:
+        image: comanage-registry:hotfix-2.0.x-basic-auth
+        environment:
+            - COMANAGE_REGISTRY_DATASOURCE=Database/Mysql
+            - COMANAGE_REGISTRY_DATABASE_USER_PASSWORD_FILE=/run/secrets/mysql_password
+            - HTTPS_CERT_FILE=/run/secrets/https_cert_file
+            - HTTPS_PRIVKEY_FILE=/run/secrets/https_privkey_file
+            - HTTPS_CHAIN_FILE=/run/secrets/https_chain_file
+        ports:
+            - "80:80"
+            - "443:443"
+```
 
 ## Full control <a name="full"></a>
 
@@ -263,5 +323,8 @@ A default set of all configuration files is available in the image.
 
 ### OpenLDAP slapd
 
-Coming soon...
+Since slapd is configured dynamically using standard LDAP operations on the
+configuration directory (`cn=config`) the most straightforward way to inject
+advanced configuration details at the time the container is *created* is
+to customize the entrypoint script.
 
