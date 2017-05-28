@@ -116,7 +116,7 @@ docker-compose down
 The instructions above are *not suitable for a production deployment* for two reasons:
 
 1. The deployed services use default and easily guessed passwords.
-2. No data is persisted. When the containers are destoryed so is your data.
+2. No data is persisted. When the containers are destroyed so is your data.
 
 ## Next Steps
 To evolve your COmanage Registry deployment examine the documentation
