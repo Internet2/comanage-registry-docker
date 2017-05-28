@@ -71,7 +71,7 @@ if [ ! -e /etc/shibboleth/shibboleth2.xml ]; then
     fi
 
     sed_script_file=`/bin/mktemp`
-    cat >> ${sed_script_file}<<EOF
+    cat > ${sed_script_file}<<EOF
 /%%SHIBBOLETH_SP_METADATA_PROVIDER_XML%%/ {
     r ${xml_content_file}
     d

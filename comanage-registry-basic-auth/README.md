@@ -89,7 +89,7 @@ configuration file:
 ```
 mkdir -p /opt/comanage-registry/Config
 
-cat >> /opt/comanage-registry/Config/database.php <<"EOF"
+cat > /opt/comanage-registry/Config/database.php <<"EOF"
 <?php
 
 class DATABASE_CONFIG {
@@ -107,7 +107,7 @@ class DATABASE_CONFIG {
 }
 EOF
 
-cat >> /opt/comanage-registry/Config/email.php <<"EOF"
+cat > /opt/comanage-registry/Config/email.php <<"EOF"
 <?php
 
 class EmailConfig {

@@ -182,7 +182,7 @@ add: olcTLSProtocolMin
 olcTLSProtocolMin: 3.2
 EOF
         if [[ -f /etc/ldap/slapd.ca.crt ]]; then
-            cat <<EOF >> /tmp/modify.ldif
+            cat <<EOF > /tmp/modify.ldif
 -
 add: olcTLSCACertificateFile
 olcTLSCACertificateFile: /etc/ldap/slapd.ca.crt
