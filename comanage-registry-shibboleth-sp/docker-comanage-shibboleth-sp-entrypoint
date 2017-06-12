@@ -28,13 +28,16 @@ fi
 
 # Configuration details that may be injected through environment
 # variables or the contents of files.
+#
+# SHIBBOLETH_SP_METADATA_PROVIDER_XML may also be injected in the
+# same way but because of the presence of special characters in the
+# XML it is handled differently.
 
 injectable_config_vars=( 
     SHIBBOLETH_SP_ENTITY_ID
     SHIBBOLETH_SP_CERT
     SHIBBOLETH_SP_PRIVKEY
     SHIBBOLETH_SP_SAMLDS_URL
-    SHIBBOLETH_SP_METADATA_PROVIDER_XML
 )
 
 # If the file associated with a configuration variable is present then 
