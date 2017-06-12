@@ -28,6 +28,7 @@ configured in a number of different ways.
 ##### Table of Contents
 * [Environment Variables](#environ)
 * [Secrets](#secrets)
+* [Apache HTTP ServerName](#servername)
 * [Full Control](#full)
 
 ## Environment Variables <a name="environ"></a>
@@ -286,6 +287,42 @@ services:
             - COMANAGE_REGISTRY_DATABASE_USER_PASSWORD_FILE=/run/secrets/mysql_password
             - HTTPS_CERT_FILE=/run/secrets/https_cert_file
             - HTTPS_PRIVKEY_FILE=/run/secrets/https_privkey_file
+        ports:
+            - "80:80"
+            - "443:443"
+```
+## ServerName <a name="servername"></a>
+
+The entrypoint scripts will attempt to parse the appropriate value for the
+Apache HTTP Server configuration option `ServerName` from the X.509 certificate
+provided for HTTPS.
+
+To override the parsing a deployer may explicitly set the environment variable
+`SERVER_NAME`. For example
+
+```
+version: '3.1'
+
+services:
+
+    comanage-registry-database:
+        image: mariadb
+        volumes:
+            - /docker/var/lib/mysql:/var/lib/mysql
+        environment:
+            - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/mysql_root_password
+            - MYSQL_DATABASE=registry
+            - MYSQL_USER=registry_user
+            - MYSQL_PASSWORD_FILE=/run/secrets/mysql_password
+
+    comanage-registry:
+        image: comanage-registry:hotfix-2.0.x-basic-auth
+        environment:
+            - COMANAGE_REGISTRY_DATASOURCE=Database/Mysql
+            - COMANAGE_REGISTRY_DATABASE_USER_PASSWORD_FILE=/run/secrets/mysql_password
+            - HTTPS_CERT_FILE=/run/secrets/https_cert_file
+            - HTTPS_PRIVKEY_FILE=/run/secrets/https_privkey_file
+            - SERVER_NAME=registry.my.org
         ports:
             - "80:80"
             - "443:443"

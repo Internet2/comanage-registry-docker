@@ -45,6 +45,7 @@ injectable_config_vars=(
     COMANAGE_REGISTRY_SECURITY_SEED
     HTTPS_CERT_FILE
     HTTPS_PRIVKEY_FILE
+    SERVER_NAME
 )
 
 # If the file associated with a configuration variable is present then 
@@ -236,6 +237,24 @@ if [ -n "$HTTPS_PRIVKEY_FILE" ]; then
     chown www-data /etc/apache2/privkey.pem
     chmod 0600 /etc/apache2/privkey.pem
 fi
+
+# If SERVER_NAME has not been injected try to determine
+# it from the HTTPS_CERT_FILE.
+if [ -z "$SERVER_NAME" ]; then
+    SERVER_NAME=`openssl x509 -in /etc/apache2/cert.pem -text -noout | sed -n '/X509v3 Subject Alternative Name:/ {n;p}' | sed -E 's/.*DNS:(.*)\s*$/\1/'`
+    if [ -z "$SERVER_NAME" ]; then
+        SERVER_NAME=`openssl x509 -in /etc/apache2/cert.pem -subject -noout | sed -E 's/subject=.*CN=(.*)\s*/\1/'`
+    fi
+fi
+
+# Configure Apache HTTP Server with the server name.
+sed -i -e s@%%SERVER_NAME%%@"${SERVER_NAME:-unknown}"@ /etc/apache2/sites-available/000-comanage.conf
+
+cat > /etc/apache2/conf-available/server-name.conf <<EOF
+ServerName ${SERVER_NAME:-unknown}
+EOF
+
+a2enconf server-name.conf > "$OUTPUT" 2>&1
 
 # If the basic auth password file does not exist create a simple version to
 # aid people evaluating the tool.
