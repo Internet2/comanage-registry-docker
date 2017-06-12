@@ -45,7 +45,6 @@ injectable_config_vars=(
     COMANAGE_REGISTRY_SECURITY_SEED
     HTTPS_CERT_FILE
     HTTPS_PRIVKEY_FILE
-    HTTPS_CHAIN_FILE
 )
 
 # If the file associated with a configuration variable is present then 
@@ -222,7 +221,8 @@ popd > "$OUTPUT" 2>&1
 chown -R www-data:www-data "$COMANAGE_REGISTRY_DIR/app/tmp"
 
 # If defined use configured location of Apache HTTP Server 
-# HTTPS certificate, key, and CA chain files.
+# HTTPS certificate and key files. The certificate file may also
+# include intermediate CA certificates, sorted from leaf to root.
 if [ -n "$HTTPS_CERT_FILE" ]; then
     rm -f /etc/apache2/cert.pem
     cp "$HTTPS_CERT_FILE" /etc/apache2/cert.pem
@@ -235,13 +235,6 @@ if [ -n "$HTTPS_PRIVKEY_FILE" ]; then
     cp "$HTTPS_PRIVKEY_FILE" /etc/apache2/privkey.pem
     chown www-data /etc/apache2/privkey.pem
     chmod 0600 /etc/apache2/privkey.pem
-fi
-
-if [ -n "$HTTPS_CHAIN_FILE" ]; then
-    rm -f /etc/apache2/chain.pem
-    cp "$HTTPS_CHAIN_FILE" /etc/apache2/chain.pem
-    chown www-data /etc/apache2/chain.pem
-    chmod 0644 /etc/apache2/chain.pem
 fi
 
 # If the basic auth password file does not exist create a simple version to

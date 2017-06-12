@@ -121,14 +121,14 @@ cp privkey.pem /docker/run/secrets/slapd_privkey_file
 cp chain.pem /docker/run/secrets/slapd_chain_file
 ```
 
-Put the X.509 certificate, private key, and chain files in place
-for Apache HTTP Server for HTTPS (it is likely these are the same as
-for slapd):
+Put the X.509 certificate and private key files in place
+for Apache HTTP Server for HTTPS. The certificate file should
+include the server certificate and any intermediate CA signing 
+certificates sorted from leaf to root:
 
 ```
 cp cert.pem /docker/run/secrets/https_cert_file
 cp privkey.pem /docker/run/secrets/https_privkey_file
-cp chain.pem /docker/run/secrets/https_chain_file
 ```
 
 Put the Shibboleth SP SAML certificate and key files in place:
@@ -199,7 +199,6 @@ services:
             - SHIBBOLETH_SP_METADATA_PROVIDER_XML_FILE=/run/secrets/shibboleth_sp_metadata_provider_xml
             - HTTPS_CERT_FILE=/run/secrets/https_cert_file
             - HTTPS_PRIVKEY_FILE=/run/secrets/https_privkey_file
-            - HTTPS_CHAIN_FILE=/run/secrets/https_chain_file
 
         ports:
             - "80:80"

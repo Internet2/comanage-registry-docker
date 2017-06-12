@@ -67,8 +67,6 @@ docker secret create https_cert_file my.org.crt
 
 docker secret create https_privkey_file my.org.key
 
-docker secret create https_chain_file chain.pem
-
 docker secret create slapd_cert_file my.org.crt
 
 docker secret create slapd_privkey_file my.org.key

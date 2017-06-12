@@ -56,7 +56,6 @@ services:
             - REGISTRY_HOST_FILE=/run/secrets/registry_host 
             - HTTPS_CERT_FILE=/run/secrets/https_cert_file 
             - HTTPS_PRIVKEY_FILE=/run/secrets/https_privkey_file 
-            - HTTPS_CHAIN_FILE=/run/secrets/https_chain_file 
             - COMANAGE_REGISTRY_ADMIN_GIVEN_NAME=ScottCmpAdmin
             - COMANAGE_REGISTRY_ADMIN_FAMILY_NAME=Koranda
             - COMANAGE_REGISTRY_ADMIN_USERNAME=http://cilogon.org/serverA/users/22981
@@ -68,7 +67,6 @@ services:
             - registry_host
             - https_cert_file
             - https_privkey_file
-            - https_chain_file
         networks:
             - default
         ports:
@@ -103,6 +101,4 @@ secrets:
     https_cert_file:
         external: true
     https_privkey_file:
-        external: true
-    https_chain_file:
         external: true

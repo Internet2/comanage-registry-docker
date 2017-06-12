@@ -147,9 +147,11 @@ an otherwise configured environment variable*.
 
 ### COmanage Registry
 
-The certificate, private key, and CA signing file or chain file used for HTTPS may
+The certificate and private key files used for HTTPS may
 be injected into the COmanage Registry container using environment variables
-to point to files mounted into the container. 
+to point to files mounted into the container. The certificate file should
+include the server certificate and any intermediate CA signing certificates
+sorted from leaf to root.
 
 For example:
 
@@ -175,7 +177,6 @@ services:
             - COMANAGE_REGISTRY_DATABASE_USER_PASSWORD_FILE=/run/secrets/mysql_password
             - HTTPS_CERT_FILE=/run/secrets/https_cert_file
             - HTTPS_PRIVKEY_FILE=/run/secrets/https_privkey_file
-            - HTTPS_CHAIN_FILE=/run/secrets/https_chain_file
         ports:
             - "80:80"
             - "443:443"
@@ -186,7 +187,6 @@ Alternatively you can directly mount files in the container to
 ```
 /etc/apache2/cert.pem
 /etc/apache2/privkey.pem
-/etc/apache2/chain.pem
 ```
 
 If no files are configured the containers use "snakeoil" self-signed certificates
@@ -222,7 +222,6 @@ services:
             - COMANAGE_REGISTRY_DATABASE_USER_PASSWORD_FILE=/run/secrets/mysql_password
             - HTTPS_CERT_FILE=/run/secrets/https_cert_file
             - HTTPS_PRIVKEY_FILE=/run/secrets/https_privkey_file
-            - HTTPS_CHAIN_FILE=/run/secrets/https_chain_file
             - SHIBBOLETH_SP_CERT=/run/secrets/shibboleth_sp_cert
             - SHIBBOLETH_SP_PRIVKEY=/run/secrets/shibboleth_sp_privkey
         ports:
@@ -287,7 +286,6 @@ services:
             - COMANAGE_REGISTRY_DATABASE_USER_PASSWORD_FILE=/run/secrets/mysql_password
             - HTTPS_CERT_FILE=/run/secrets/https_cert_file
             - HTTPS_PRIVKEY_FILE=/run/secrets/https_privkey_file
-            - HTTPS_CHAIN_FILE=/run/secrets/https_chain_file
         ports:
             - "80:80"
             - "443:443"

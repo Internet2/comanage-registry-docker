@@ -59,7 +59,6 @@ services:
             - SHIBBOLETH_SP_METADATA_PROVIDER_XML_FILE=/run/secrets/shibboleth_sp_metadata_provider_xml
             - HTTPS_CERT_FILE=/run/secrets/https_cert_file
             - HTTPS_PRIVKEY_FILE=/run/secrets/https_privkey_file
-            - HTTPS_CHAIN_FILE=/run/secrets/https_chain_file
 
         ports:
             - "80:80"

@@ -115,7 +115,6 @@ RUN mkdir -p "$COMANAGE_REGISTRY_DIR" \
       && cd /etc/apache2 \
       && ln -s /etc/ssl/certs/ssl-cert-snakeoil.pem cert.pem \
       && ln -s /etc/ssl/private/ssl-cert-snakeoil.key privkey.pem \
-      && ln -s /etc/ssl/certs/ssl-cert-snakeoil.pem chain.pem  \
       && sed -ie 's/'"'"'engine'"'"' => '"'"'FileLog'"'"'/'"'"'engine'"'"' => '"'"'ConsoleLog'"'"'/' "$COMANAGE_REGISTRY_DIR/app/Config/bootstrap.php" 
 
 COPY docker-comanage-entrypoint /usr/local/bin/
