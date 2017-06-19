@@ -87,7 +87,7 @@ docker-compose up -d
 * Click `Login` and when prompted enter `registry.admin` as the username and `password`
 for the password.
 
-See [Advanced Configuration](docs/advanced-configuration.md) 
+See [Advanced Configuration](./advanced-configuration.md) 
 for details on setting a non-default administrator username and password.
 
 * Visit the [COmanage wiki](https://spaces.internet2.edu/display/COmanage/Setting+Up+Your+First+CO)
