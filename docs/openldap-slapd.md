@@ -102,7 +102,7 @@ docker-compose up -d
 * Click `Login` and when prompted enter `registry.admin` as the username and `password`
 for the password.
 
-See [Advanced Configuration](docs/advanced-configuration.md) 
+See [Advanced Configuration](./advanced-configuration.md) 
 for details on setting a non-default administrator username and password.
 
 * The default suffix for the LDAP directory is `dc=my,dc=org`. The
@@ -132,5 +132,5 @@ bring up the services again and resume where you left off.
 The instructions above are *not suitable for a production deployment* 
 because the deployed services use default and easily guessed passwords.
 
-See [Advanced Configuration](docs/advanced-configuration.md) for
+See [Advanced Configuration](./advanced-configuration.md) for
 details on setting non-default passwords.
