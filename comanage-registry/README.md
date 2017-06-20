@@ -30,63 +30,48 @@ repository for examples on how to build images on this
 one that include authentication methods like Basic Auth,
 Shibboleth Native SP for Apache, and OIDC.
 
-## Build
+## Configuration
 
-```
-export COMANAGE_REGISTRY_VERSION=develop
-sed -e s/%%COMANAGE_REGISTRY_VERSION%%/${COMANAGE_REGISTRY_VERSION}/g Dockerfile.template  > Dockerfile
-docker build -t comanage-registry:${COMANAGE_REGISTRY_VERSION} .
-```
+### Environment Variables
 
-You can (and should) use build arguments to bootstrap the first
-platform administrator. The administrator username is the value
-COmanage Registry expects to read from $REMOTE\_USER after
-the administrator authenticates using whichever authentication
-method is provided:
+The following environment variables may be set to inject deployment
+details into a container built from this image:
 
-```
-export COMANAGE_REGISTRY_VERSION=develop
+| Environment Variable | Description | Default | Example 1 | Example 2 |
+| -------------------- | ----------- | --------- | --------- | ------- |
+| COMANAGE_REGISTRY_ADMIN_FAMILY_NAME | Registry admin family name | Admin | Novak | Sanchez |
+| COMANAGE_REGISTRY_ADMIN_GIVEN_NAME | Registry admin given name | Registry | Karel | Michelle |
+| COMANAGE_REGISTRY_ADMIN_USERNAME | Registry admin login name | registry.admin | admin | karel.novak@my.org |
+| COMANAGE_REGISTRY_DATABASE | database name | registry | registry_db | comanage |
+| COMANAGE_REGISTRY_DATABASE_HOST | database server hostname | comanage-registry-database | | |
+| COMANAGE_REGISTRY_DATABASE_USER| database user | registry_user | comanage | comanage_user |
+| COMANAGE_REGISTRY_DATABASE_USER_PASSWORD | database user password | password | AFH9OiyuowiY3Wq6qX0j | qVcsJPo7$@ |
+| COMANAGE_REGISTRY_DATASOURCE | database type | Database/Postgres | Database/Postgres | Database/Mysql |
+| COMANAGE_REGISTRY_EMAIL_FROM | From: address | array('account@gmail.com' => 'Registry') | 'registry@my.org' | array('registry@my.org' => 'My Org Registry') |
+| COMANAGE_REGISTRY_EMAIL_TRANSPORT | mail transport | Smtp | | |
+| COMANAGE_REGISTRY_EMAIL_HOST | mail host | tls://smtp.gmail.com | smtp.my.org | mail.my.org |
+| COMANAGE_REGISTRY_EMAIL_PORT | mail port | 465 | 25 | 587 |
+| COMANAGE_REGISTRY_EMAIL_ACCOUNT | mail server account | account@gmail.com | mail_bot | registry |
+| COMANAGE_REGISTRY_EMAIL_ACCOUNT_PASSWORD | mail server password | password | d6WE2fpwAw | xp790Mu3q6 |
+| COMANAGE_REGISTRY_SECURITY_SALT | CakePHP security salt | automatically generated | e8RrE9X3pVnozrupHSHo4GTLqL380LuU7X7LKj42 | |
+| COMANAGE_REGISTRY_SECURITY_SEED | CakePHP security seed | automatically generated | 62259808467736132961503540721 | |
+| HTTPS_CERT_FILE | HTTPS X.509 certificate | automatically generated self-signed | | |
+| HTTPS_PRIVKEY_FILE | HTTPS private key | automatically generated self-signed | | |
+| SERVER_NAME | web server name | parsed from HTTPS X.509 certificate | | |
 
-export COMANAGE_REGISTRY_ADMIN_GIVEN_NAME=Karel
-export COMANAGE_REGISTRY_ADMIN_FAMILY_NAME=Novak
-export COMANAGE_REGISTRY_ADMIN_USERNAME=karel.novak@my.org
 
-sed -e s/%%COMANAGE_REGISTRY_VERSION%%/${COMANAGE_REGISTRY_VERSION}/g Dockerfile.template  > Dockerfile
-docker build \
-  --build-arg COMANAGE_REGISTRY_ADMIN_GIVEN_NAME=${COMANAGE_REGISTRY_ADMIN_GIVEN_NAME} \
-  --build-arg COMANAGE_REGISTRY_ADMIN_FAMILY_NAME=${COMANAGE_REGISTRY_ADMIN_FAMILY_NAME} \
-  --build-arg COMANAGE_REGISTRY_ADMIN_USERNAME=${COMANAGE_REGISTRY_ADMIN_USERNAME} \
-  -t comanage-registry:${COMANAGE_REGISTRY_VERSION} .
-```
-## Run
+### Finer Control
 
-### Database
-
-COmanage Registry requires a relational database. See the 
-[PostgreSQL example for COmanage Registry](../comanage-registry-postgres/README.md).
-
-### Network
-
-Create a user-defined network bridge with
-
-```
-docker network create --driver=bridge \
-  --subnet=192.168.0.0/16 \
-  --gateway=192.168.0.100 \
-  comanage-registry-internal-network
-```
-
-### Configuration
-
-Create a directory to hold persistent COmanage Registry configuration and
+For finer control over the configuration of COmanage Registry and the
+CakePHP framework create a directory to hold persistent COmanage Registry configuration and
 other state such as local plugins and other customizations. In that directory
 create a `Config` directory and in it place a `database.php` and `email.php`
 configuration file:
 
 ```
-mkdir -p /opt/comanage-registry/Config
+mkdir -p /docker/srv/comanage-registry/local/Config
 
-cat > /opt/comanage-registry/Config/database.php <<"EOF"
+cat > /docker/srv/comanage-registry/local/Config/database.php <<"EOF"
 <?php
 
 class DATABASE_CONFIG {
@@ -104,7 +89,7 @@ class DATABASE_CONFIG {
 }
 EOF
 
-cat > /opt/comanage-registry/Config/email.php <<"EOF"
+cat > /docker/srv/comanage-registry/local/Config/email.php <<"EOF"
 <?php
 
 class EmailConfig {
@@ -120,25 +105,19 @@ class EmailConfig {
 EOF
 ```
 
-### Container
+When creating the container mount the directory you created, eg.
 
 ```
 docker run -d --name comanage-registry \
-  -v /opt/comanage-registry:/local \
-  --network comanage-registry-internal-network \
+  -v /docker/srv/comanage-registry/local:/local 
   -p 80:80 -p 443:443 \
   comanage-registry:${COMANAGE_REGISTRY_VERSION}
 ```
 
-### Logging
-
-Both Apache HTTP Server and COmanage Registry log to the stdout and
-stderr of the container.
-
 ### HTTPS Configuration
 
-Mount or COPY in an X.509 certificate file (containing the CA signing certificate(s), if any)
-and associated private key file.
+In preferred you may mount or COPY in an X.509 certificate file (containing the CA signing certificate(s), if any)
+and associated private key file. 
 
 ```
 COPY cert.pem /etc/apache2/cert.pem
