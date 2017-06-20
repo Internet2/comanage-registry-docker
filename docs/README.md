@@ -26,5 +26,5 @@ limitations under the License.
 * [Add OpenLDAP slapd for provisioning](./openldap-slapd.md)
 * [Advanced configuration](./advanced-configuration.md)
 * [Complete example recipe for production deployment](./shibboleth-sp-postgres-compose.md)
-* [Using Docker service stacks and Docker secrets](./stacks-secrets.md)
+* [Using Docker service stacks and Docker secrets](./mod-auth-oidc-mariadb-stacks.md)
 

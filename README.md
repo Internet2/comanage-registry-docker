@@ -130,7 +130,7 @@ in the [docs directory](docs/README.md) or follow these direct links:
 * [Add OpenLDAP slapd for provisioning](docs/openldap-slapd.md)
 * [Advanced configuration](docs/advanced-configuration.md)
 * [Complete example recipe for production deployment](docs/shibboleth-sp-postgres-compose.md)
-* [Using Docker service stacks and Docker secrets](docs/stacks-secrets.md)
+* [Using Docker service stacks and Docker secrets](docs/mod-auth-oidc-mariadb-stacks.md)
 
 
 
