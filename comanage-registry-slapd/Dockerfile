@@ -45,4 +45,4 @@ ENTRYPOINT ["docker-slapd-entrypoint"]
 
 EXPOSE 389
 
-CMD ["slapd", "-d", "32768", "-h", "ldapi:/// ldap://127.0.0.1", "-u", "openldap", "-g", "openldap"]
+CMD ["slapd", "-d", "256", "-h", "ldapi:/// ldap://127.0.0.1", "-u", "openldap", "-g", "openldap"]
