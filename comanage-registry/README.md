@@ -109,7 +109,7 @@ When creating the container mount the directory you created, eg.
 
 ```
 docker run -d --name comanage-registry \
-  -v /docker/srv/comanage-registry/local:/local 
+  -v /docker/srv/comanage-registry/local:/srv/comanage-registry/local 
   -p 80:80 -p 443:443 \
   comanage-registry:${COMANAGE_REGISTRY_VERSION}
 ```

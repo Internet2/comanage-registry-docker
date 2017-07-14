@@ -152,7 +152,7 @@ Redirect /registry/users/logout https://<myserver>/secure/redirect?logout=https%
 
 ```
 docker run -d --name comanage-registry \
-  -v /opt/comanage-registry:/local \
+  -v /opt/comanage-registry:/srv/comanage-registry/local \
   --network comanage-registry-internal-network \
   -p 80:80 -p 443:443 \
   comanage-registry:${COMANAGE_REGISTRY_VERSION}-mod-auth-openidc

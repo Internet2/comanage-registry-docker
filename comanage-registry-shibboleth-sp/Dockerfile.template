@@ -206,10 +206,8 @@ RUN mkdir -p "$COMANAGE_REGISTRY_DIR" \
       && chown -R www-data:www-data "$COMANAGE_REGISTRY_DIR/app/tmp" \
       && cd /var/www/html \
       && ln -s "$COMANAGE_REGISTRY_DIR/app/webroot" registry \
-      && cd "$COMANAGE_REGISTRY_DIR" \
-      && rm -rf local \
-      && mkdir -p /local \
-      && ln -s /local local \
+      && rm -rf "$COMANAGE_REGISTRY_DIR/local/*" \
+      && ln -s "$COMANAGE_REGISTRY_DIR/local" /local \
       && a2enmod headers \
       && a2enmod ssl \
       && a2enmod rewrite \
