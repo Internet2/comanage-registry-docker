@@ -86,7 +86,8 @@ EOF
 
     # Kill slapd and remove the directory created by the Debian installation
     # that was copied over and used to allow slapd to start initially.
-    killall slapd
+    kill -INT `cat /var/run/slapd/slapd.pid`
+    sleep 1
 
     rm -f /var/lib/ldap/* 
 
@@ -182,7 +183,7 @@ add: olcTLSProtocolMin
 olcTLSProtocolMin: 3.2
 EOF
         if [[ -f /etc/ldap/slapd.ca.crt ]]; then
-            cat <<EOF > /tmp/modify.ldif
+            cat <<EOF >> /tmp/modify.ldif
 -
 add: olcTLSCACertificateFile
 olcTLSCACertificateFile: /etc/ldap/slapd.ca.crt
@@ -201,7 +202,8 @@ EOF
     ldapmodify -Y EXTERNAL -H ldapi:/// -a -f /etc/ldap/schema/openssh-lpk.ldif 2>&1
 
     # Stop slapd.
-    killall slapd
+    kill -INT `cat /var/run/slapd/slapd.pid`
+    sleep 1
 
     # Fix permissions.
     chown -R openldap:openldap /var/lib/ldap
