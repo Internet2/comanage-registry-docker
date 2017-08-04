@@ -49,7 +49,7 @@ RUN wget -O log4shib.tar.gz "${LOG4SHIB_URL}" \
             --prefix=/opt/shibboleth-sp \
             --build=x86_64 \
       && LD_FLAGS=-lpthread make \
-      && make install \
+      && make -j 2 install \
       && cd .. \
       && rm -r src 
 
@@ -61,7 +61,7 @@ RUN wget -O xerces.tar.gz "${XERCESC_URL}" \
       && rm -f xerces.tar.gz \
       && cd src \
       && ./configure --prefix=/opt/shibboleth-sp \
-      && make \
+      && make -j 2 \
       && make install \
       && cd .. \
       && rm -r src 
@@ -78,7 +78,7 @@ RUN wget -O xmlsecc.tar.gz "${XMLSECC_URL}" \
             --with-openssl=/usr \
             --disable-static \
             --without-xalan \
-      && make \
+      && make -j 2 \
       && make install \
       && cd .. \
       && rm -r src 
@@ -93,7 +93,7 @@ RUN wget -O xmltooling.tar.gz "${XMLTOOLING_URL}" \
       && CXXFLAGS=-fPIC ./configure --prefix=/opt/shibboleth-sp \
             --with-log4shib=/opt/shibboleth-sp \
             -C \
-      && make \
+      && make -j 2 \
       && make install \
       && cd .. \
       && rm -r src 
@@ -108,7 +108,7 @@ RUN wget -O opensamlc.tar.gz "${OPENSAMLC_URL}" \
       && ./configure --prefix=/opt/shibboleth-sp \
             --with-log4shib=/opt/shibboleth-sp \
             -C \
-      && make \
+      && make -j 2 \
       && make install \
       && cd .. \
       && rm -r src 
@@ -130,7 +130,7 @@ RUN wget -O shibboleth-sp.tar.gz "${SHIBBOLETH_SP_URL}" \
             --with-apxs24=/usr/bin/apxs \
             --disable-adfs \
             --disable-obc \
-      && make \
+      && make -j 2 \
       && make install \
       && cd .. \
       && rm -r src 
@@ -151,15 +151,6 @@ RUN /usr/sbin/useradd --system _shibd \
       && a2enmod shib2 \
       && apt-get install -y --no-install-recommends supervisor \
       && mkdir -p /var/log/supervisor
-
-
-ARG COMANAGE_REGISTRY_VERSION=%%COMANAGE_REGISTRY_VERSION%%
-ARG COMANAGE_REGISTRY_SRC_URL=https://github.com/Internet2/comanage-registry/archive/$COMANAGE_REGISTRY_VERSION.tar.gz
-
-LABEL comanage_registry_version=$COMANAGE_REGISTRY_VERSION
-LABEL comanage_registry_src_url=$COMANAGE_REGISTRY_SRC_URL
-
-ENV COMANAGE_REGISTRY_DIR /srv/comanage-registry
 
 RUN apt-get update && apt-get install -y \
          libldap-2.4-2 \
@@ -192,6 +183,14 @@ RUN apt-get update && apt-get install -y \
          libssl-dev \
          make \
       && apt-get clean
+
+ARG COMANAGE_REGISTRY_VERSION=%%COMANAGE_REGISTRY_VERSION%%
+ARG COMANAGE_REGISTRY_SRC_URL=https://github.com/Internet2/comanage-registry/archive/$COMANAGE_REGISTRY_VERSION.tar.gz
+
+LABEL comanage_registry_version=$COMANAGE_REGISTRY_VERSION
+LABEL comanage_registry_src_url=$COMANAGE_REGISTRY_SRC_URL
+
+ENV COMANAGE_REGISTRY_DIR /srv/comanage-registry
 
 WORKDIR "$COMANAGE_REGISTRY_DIR"
 
