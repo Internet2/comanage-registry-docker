@@ -51,7 +51,8 @@ do
     eval file_name=\$"${config_var}_FILE";
 
     if [ -e "$file_name" ]; then
-        declare "${config_var}"=`cat $file_name`
+        payload=`cat $file_name`
+        declare "${config_var}"="${payload}"
     fi
 done
 
