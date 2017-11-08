@@ -188,6 +188,10 @@ rm -f "$SETUP_ALREADY_SCRIPT"
 if [ $setup_already -eq 0 ]; then
     rm -f "$COMANAGE_REGISTRY_DIR/local/Config/security.salt" > "$OUTPUT" 2>&1
     rm -f "$COMANAGE_REGISTRY_DIR/local/Config/security.seed" > "$OUTPUT" 2>&1
+    # Run database twice until issue on develop branch is resolved. Since
+    # the command is idempotent normally it is not a problem to have it run
+    # more than once.
+    ./Console/cake database > "$OUTPUT" 2>&1 && \
     ./Console/cake database > "$OUTPUT" 2>&1 && \
     ./Console/cake setup --admin-given-name "${COMANAGE_REGISTRY_ADMIN_GIVEN_NAME}" \
                          --admin-family-name "${COMANAGE_REGISTRY_ADMIN_FAMILY_NAME}" \
@@ -216,6 +220,33 @@ pushd "$COMANAGE_REGISTRY_DIR/app" > "$OUTPUT" 2>&1
 ./Console/cake upgradeVersion "${COMANAGE_REGISTRY_UPGRADE_VERSION_OPTS}" > "$OUTPUT" 2>&1
 
 popd > "$OUTPUT" 2>&1
+
+# Force a datbase update if requested. This is helpful when deploying
+# a new version of the code that does not result in a change in the
+# version number and so upgradeVersion does not fire. An example
+# of this scenario is when new code is introduced in the develop
+# branch but before a release happens.
+if [ -n "$COMANAGE_REGISTRY_DATABASE_SCHEMA_FORCE" ]; then
+    echo "Forcing a database schema update..." > "$OUTPUT" 2>&1
+    pushd "$COMANAGE_REGISTRY_DIR/app" > "$OUTPUT" 2>&1
+    ./Console/cake database > "$OUTPUT" 2>&1
+    popd > "$OUTPUT" 2>&1
+fi
+
+# Enable any supported non-core plugins if requested.
+if [ -n "$COMANAGE_REGISTRY_ENABLE_PLUGIN" ]; then
+    plugins=(`echo "$COMANAGE_REGISTRY_ENABLE_PLUGIN" | sed -e 's@,@ @'`) > "$OUTPUT" 2>&1
+    for plugin in "${plugins[@]}"; 
+    do 
+        echo "Enabling available plugin $plugin..." > "$OUTPUT" 2>&1
+        pushd "$COMANAGE_REGISTRY_DIR/local/Plugin" > "$OUTPUT" 2>&1
+        ln -s "../../app/AvailablePlugin/$plugin" "$plugin" > "$OUTPUT" 2>&1
+        popd > "$OUTPUT" 2>&1
+        pushd "$COMANAGE_REGISTRY_DIR/app" > "$OUTPUT" 2>&1
+        ./Console/cake database > "$OUTPUT" 2>&1
+        popd > "$OUTPUT" 2>&1
+    done
+fi
 
 # Running CakePHP console commands generates cache files so 
 # set the ownership of those files appropriately.
