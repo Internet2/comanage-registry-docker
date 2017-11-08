@@ -100,4 +100,38 @@ if [ -n "$SHIBBOLETH_SP_PRIVKEY" ]; then
     chmod 0600 /etc/shibboleth/sp-key.pem
 fi
 
+# A deployer may make their own mapping between the _shibd username
+# and the UID, and between the _shibd group and GID, so before starting 
+# make sure files have the correct ownership and group. These are the 
+# files and directories that must be owned by _shibd at runtime.
+chown _shibd:_shibd /etc/shibboleth/sp-cert.pem > /dev/null 2>&1
+chown _shibd:_shibd /etc/shibboleth/sp-key.pem > /dev/null 2>&1
+
+chown _shibd:_shibd /opt/shibboleth-sp/var > /dev/null 2>&1
+chown _shibd:_shibd /opt/shibboleth-sp/var > /dev/null 2>&1
+chown _shibd:_shibd /opt/shibboleth-sp/var/run > /dev/null 2>&1
+chown _shibd:_shibd /opt/shibboleth-sp/var/run/shibboleth > /dev/null 2>&1
+chown _shibd:_shibd /opt/shibboleth-sp/var/run/shibboleth/shibd.sock > /dev/null 2>&1
+chown _shibd:_shibd /opt/shibboleth-sp/var/log > /dev/null 2>&1
+chown _shibd:_shibd /opt/shibboleth-sp/var/log/shibboleth > /dev/null 2>&1
+chown _shibd:_shibd /opt/shibboleth-sp/var/log/shibboleth/transaction.log > /dev/null 2>&1
+chown _shibd:_shibd /opt/shibboleth-sp/var/log/shibboleth/signature.log > /dev/null 2>&1
+chown _shibd:_shibd /opt/shibboleth-sp/var/log/shibboleth/shibd_warn.log > /dev/null 2>&1
+chown _shibd:_shibd /opt/shibboleth-sp/var/log/shibboleth/shibd.log > /dev/null 2>&1
+chown _shibd:_shibd /opt/shibboleth-sp/var/log/shibboleth-www > /dev/null 2>&1
+chown _shibd:_shibd /opt/shibboleth-sp/var/cache > /dev/null 2>&1
+chown _shibd:_shibd /opt/shibboleth-sp/var/cache/shibboleth > /dev/null 2>&1
+
+# Warn about any files in /etc/shibboleth that the _shibd user cannot read.
+su _shibd -c 'find /etc/shibboleth ! -readable' > /tmp/shibd-not-readable 2>/dev/null
+
+if [ -s /tmp/shibd-not-readable ]; then
+    echo "WARNING: the following files are not readable by _shibd"
+    cat /tmp/shibd-not-readable
+    echo ""
+fi
+
+rm -f /tmp/shibd-not-readable > /dev/null 2>&1
+
+# Start the daemon.
 exec /opt/shibboleth-sp/sbin/shibd -f -u _shibd -g _shibd -c /etc/shibboleth/shibboleth2.xml -p /var/run/shibboleth/shibd.pid -F
