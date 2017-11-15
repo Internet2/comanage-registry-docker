@@ -83,7 +83,7 @@ RUN wget -O xmlsecc.tar.gz "${XMLSECC_URL}" \
       && cd .. \
       && rm -r src 
 
-ARG XMLTOOLING_URL=http://shibboleth.net/downloads/c++-opensaml/latest/xmltooling-1.6.0.tar.gz
+ARG XMLTOOLING_URL=http://shibboleth.net/downloads/c++-opensaml/latest/xmltooling-1.6.1.tar.gz
 
 RUN wget -O xmltooling.tar.gz "${XMLTOOLING_URL}" \
       && mkdir -p src \
@@ -98,7 +98,7 @@ RUN wget -O xmltooling.tar.gz "${XMLTOOLING_URL}" \
       && cd .. \
       && rm -r src 
 
-ARG OPENSAMLC_URL=http://shibboleth.net/downloads/c++-opensaml/latest/opensaml-2.6.0.tar.gz
+ARG OPENSAMLC_URL=http://shibboleth.net/downloads/c++-opensaml/latest/opensaml-2.6.1.tar.gz
 
 RUN wget -O opensamlc.tar.gz "${OPENSAMLC_URL}" \
       && mkdir -p src \
@@ -113,7 +113,7 @@ RUN wget -O opensamlc.tar.gz "${OPENSAMLC_URL}" \
       && cd .. \
       && rm -r src 
 
-ARG SHIBBOLETH_SP_URL=http://shibboleth.net/downloads/service-provider/latest/shibboleth-sp-2.6.0.tar.gz
+ARG SHIBBOLETH_SP_URL=http://shibboleth.net/downloads/service-provider/latest/shibboleth-sp-2.6.1.tar.gz
 
 RUN wget -O shibboleth-sp.tar.gz "${SHIBBOLETH_SP_URL}" \
       && mkdir -p src \
