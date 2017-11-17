@@ -83,7 +83,7 @@ RUN wget -O xmlsecc.tar.gz "${XMLSECC_URL}" \
       && cd .. \
       && rm -r src 
 
-ARG XMLTOOLING_URL=http://shibboleth.net/downloads/c++-opensaml/latest/xmltooling-1.6.1.tar.gz
+ARG XMLTOOLING_URL=http://shibboleth.net/downloads/c++-opensaml/latest/xmltooling-1.6.2.tar.gz
 
 RUN wget -O xmltooling.tar.gz "${XMLTOOLING_URL}" \
       && mkdir -p src \
