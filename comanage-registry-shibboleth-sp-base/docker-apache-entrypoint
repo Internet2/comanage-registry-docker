@@ -1,0 +1,93 @@
+#!/bin/bash
+
+# Apache HTTP Server Dockerfile entrypoint
+#
+# Portions licensed to the University Corporation for Advanced Internet
+# Development, Inc. ("UCAID") under one or more contributor license agreements.
+# See the NOTICE file distributed with this work for additional information
+# regarding copyright ownership.
+#
+# UCAID licenses this file to you under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with the
+# License. You may obtain a copy of the License at:
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+if [ -n "$DEBUG" ]
+then
+    OUTPUT=/dev/stdout
+else
+    OUTPUT=/dev/null
+fi
+
+# Configuration details that may be injected through environment
+# variables or the contents of files.
+
+injectable_config_vars=( 
+    HTTPS_CERT_FILE
+    HTTPS_PRIVKEY_FILE
+    SERVER_NAME
+)
+
+# If the file associated with a configuration variable is present then 
+# read the value from it into the appropriate variable. So for example
+# if the variable COMANAGE_REGISTRY_DATASOURCE_FILE exists and its
+# value points to a file on the file system then read the contents
+# of that file into the variable COMANAGE_REGISTRY_DATASOURCE.
+
+for config_var in "${injectable_config_vars[@]}"
+do
+    eval file_name=\$"${config_var}_FILE";
+
+    if [ -e "$file_name" ]; then
+        declare "${config_var}"=`cat $file_name`
+    fi
+done
+
+# If defined use configured location of Apache HTTP Server 
+# HTTPS certificate and key files. The certificate file may also
+# include intermediate CA certificates, sorted from leaf to root.
+if [ -n "$HTTPS_CERT_FILE" ]; then
+    rm -f /etc/apache2/cert.pem
+    cp "$HTTPS_CERT_FILE" /etc/apache2/cert.pem
+    chown www-data /etc/apache2/cert.pem
+    chmod 0644 /etc/apache2/cert.pem
+fi
+
+if [ -n "$HTTPS_PRIVKEY_FILE" ]; then
+    rm -f /etc/apache2/privkey.pem
+    cp "$HTTPS_PRIVKEY_FILE" /etc/apache2/privkey.pem
+    chown www-data /etc/apache2/privkey.pem
+    chmod 0600 /etc/apache2/privkey.pem
+fi
+
+# If SERVER_NAME has not been injected try to determine
+# it from the HTTPS_CERT_FILE.
+if [ -z "$SERVER_NAME" ]; then
+    SERVER_NAME=`openssl x509 -in /etc/apache2/cert.pem -text -noout | sed -n '/X509v3 Subject Alternative Name:/ {n;p}' | sed -E 's/.*DNS:(.*)\s*$/\1/'`
+    if [ -z "$SERVER_NAME" ]; then
+        SERVER_NAME=`openssl x509 -in /etc/apache2/cert.pem -subject -noout | sed -E 's/subject=.*CN=(.*)\s*/\1/'`
+    fi
+fi
+
+# Configure Apache HTTP Server with the server name.
+sed -i -e s@%%SERVER_NAME%%@"${SERVER_NAME:-unknown}"@g /etc/apache2/sites-available/000-site.conf
+
+cat > /etc/apache2/conf-available/server-name.conf <<EOF
+ServerName ${SERVER_NAME:-unknown}
+EOF
+
+a2enconf server-name.conf > "$OUTPUT" 2>&1
+
+# first arg is `-f` or `--some-option`
+if [ "${1#-}" != "$1" ]; then
+    set -- apache2-foreground "$@"
+fi
+
+exec "$@"
