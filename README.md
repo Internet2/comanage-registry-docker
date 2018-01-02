@@ -52,7 +52,7 @@ cd comanage-registry-docker
 * Define `COMANAGE_REGISTRY_VERSION`. Currently we recommend
 
 ```
-export COMANAGE_REGISTRY_VERSION=hotfix-2.0.x
+export COMANAGE_REGISTRY_VERSION=3.0.0
 ```
 
 * Build a local image for COmanage Registry:
@@ -80,7 +80,7 @@ services:
         image: comanage-registry-postgres
 
     comanage-registry:
-        image: comanage-registry:hotfix-2.0.x-basic-auth
+        image: comanage-registry:3.0.0-basic-auth
         ports:
             - "80:80"
             - "443:443"
