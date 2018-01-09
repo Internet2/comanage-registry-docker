@@ -205,10 +205,16 @@ EOF
     kill -INT `cat /var/run/slapd/slapd.pid`
     sleep 1
 
-    # Fix permissions.
+    # Fix user and group.
     chown -R openldap:openldap /var/lib/ldap
     chown -R openldap:openldap /etc/ldap/slapd.d
 
 fi
+
+# Always set user and group in case external source of user and
+# group mappings to numeric UID and GID is being used, such as
+# COPY in of /etc/passwd.
+chown -R openldap:openldap /var/lib/ldap
+chown -R openldap:openldap /etc/ldap/slapd.d
 
 exec "$@"
