@@ -16,72 +16,31 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-FROM centos:centos7 AS php-build
+ARG COMANAGE_REGISTRY_VERSION=develop
+ARG COMANAGE_REGISTRY_BASE_IMAGE_VERSION=1
+ARG COMANAGE_REGISTRY_I2_BASE_IMAGE_VERSION=1
 
-RUN yum -y install epel-release
+FROM comanage-registry-base:${COMANAGE_REGISTRY_VERSION}-${COMANAGE_REGISTRY_BASE_IMAGE_VERSION} AS comanage
 
-RUN yum -y update && yum -y install \
-        autoconf \
-        bison \
-        gcc \
-        httpd-devel \
-        libargon2-devel \
-        libcurl-devel \
-        libedit-devel \
-        libsodium-devel \
-        libxml2-devel \
-        libxslt-devel \
-        make \
-        mariadb-devel \
-        openldap-devel \
-        openssl-devel \
-        postgresql-devel \
-        re2c \
-        wget
-
-WORKDIR /usr/local/src
-
-ARG PHP_VERSION=7.2.5
-ARG PHP_SRC_URL=https://github.com/php/php-src/archive/php-${PHP_VERSION}.tar.gz
-
-RUN mkdir php-src \
-        && wget -O php-src.tar.gz ${PHP_SRC_URL} \
-        && tar zxf php-src.tar.gz -C php-src --strip-components=1 \
-        && rm php-src.tar.gz
-
-ENV PHP_CFLAGS="-fstack-protector-strong -fpic -fpie -O2"
-ENV PHP_CPPFLAGS="$PHP_CFLAGS"
-ENV PHP_LDFLAGS="-Wl,-O1 -Wl,--hash-style=both -pie"
-
-RUN cd php-src \
-        && ./buildconf --force \
-        && ./configure \
-            --disable-cgi \
-            --enable-mbstring \
-            --enable-mysqlnd \
-            --with-apxs2=/usr/bin/apxs \
-            --with-config-file-path=/usr/local/etc/php \
-            --with-config-file-scan-dir=/usr/local/etc/php/conf.d \
-            --with-curl \
-            --with-ldap \
-            --with-libdir=lib64 \
-            --with-libedit \
-            --with-mysqli \
-            --with-openssl \
-            --with-password-argon2 \
-            --with-pdo-mysql \
-            --with-pdo-pgsql \
-            --with-pgsql \
-            --with-sodium \
-            --with-xsl \
-            --with-zlib \
-        && export CFLAGS="$PHP_CFLAGS" \
-        && export CPPFLAGS="$PHP_CPPFLAGS" \
-        && export LDFLAGS="$PHP_LDFLAGS" \
-        && make -j "$(nproc)" \
-        && make install 
+FROM comanage-registry-internet2-tier-base:${COMANAGE_REGISTRY_I2_BASE_IMAGE_VERSION} AS php-build
 
 FROM centos:centos7
+
+ARG COMANAGE_REGISTRY_VERSION
+ENV COMANAGE_REGISTRY_VERSION ${COMANAGE_REGISTRY_VERSION}
+LABEL comanage_registry_version=${COMANAGE_REGISTRY_VERSION}
+
+ARG COMANAGE_REGISTRY_BASE_IMAGE_VERSION
+ENV COMANAGE_REGISTRY_BASE_IMAGE_VERSION ${COMANAGE_REGISTRY_BASE_IMAGE_VERSION}
+LABEL comanage_registry_base_image_version=${COMANAGE_REGISTRY_BASE_IMAGE_VERSION}
+
+ARG COMANAGE_REGISTRY_I2_BASE_IMAGE_VERSION
+ENV COMANAGE_REGISTRY_I2_BASE_IMAGE_VERSION ${COMANAGE_REGISTRY_I2_BASE_IMAGE_VERSION}
+LABEL comanage_registry_i2_base_image_version=${COMANAGE_REGISTRY_I2_BASE_IMAGE_VERSION}
+
+ARG COMANAGE_REGISTRY_DIR
+ENV COMANAGE_REGISTRY_DIR ${COMANAGE_REGISTRY_DIR:-/srv/comanage-registry}
+LABEL comanage_registry_dir=${COMANAGE_REGISTRY_DIR}
 
 RUN yum -y install epel-release
 
@@ -101,6 +60,7 @@ RUN yum -y update && yum -y install \
         postgresql \
         python-pip \
         shibboleth \
+        sudo \
         wget \
         zlib \
     && pip install --upgrade pip \
@@ -112,28 +72,13 @@ COPY --from=php-build /usr/local/lib/php /usr/local/lib/php/
 COPY --from=php-build /usr/local/include/php /usr/local/include/php/
 COPY --from=php-build /usr/local/bin /usr/local/bin/
 
-ARG COMANAGE_REGISTRY_VERSION
-ARG COMANAGE_REGISTRY_SRC_URL=https://github.com/Internet2/comanage-registry/archive/${COMANAGE_REGISTRY_VERSION}.tar.gz
-ENV COMANAGE_REGISTRY_VERSION ${COMANAGE_REGISTRY_VERSION}
-
-LABEL comanage_registry_version=${COMANAGE_REGISTRY_VERSION}
-LABEL comanage_registry_src_url=${COMANAGE_REGISTRY_SRC_URL}
-
-ENV COMANAGE_REGISTRY_DIR /srv/comanage-registry
-
-WORKDIR "$COMANAGE_REGISTRY_DIR"
-
-RUN mkdir -p "${COMANAGE_REGISTRY_DIR}" \
-        && wget -O comanage.tar.gz ${COMANAGE_REGISTRY_SRC_URL} \
-        && tar -zxf comanage.tar.gz -C ${COMANAGE_REGISTRY_DIR} --strip-components=1 \
-        && rm -f comanage.tar.gz \
-        && rm -f ${COMANAGE_REGISTRY_DIR}/app/tmp \
-        && cp -r ${COMANAGE_REGISTRY_DIR}/app/tmp.dist ${COMANAGE_REGISTRY_DIR}/app/tmp \
-        && chown -R apache:apache ${COMANAGE_REGISTRY_DIR}/app/tmp \
-        && cd /var/www/html \
-        && ln -s ${COMANAGE_REGISTRY_DIR}/app/webroot registry \
-        && rm -rf ${COMANAGE_REGISTRY_DIR}/local/* \
-        && ln -s ${COMANAGE_REGISTRY_DIR}/local /local 
+COPY --from=comanage ${COMANAGE_REGISTRY_DIR} ${COMANAGE_REGISTRY_DIR}/
+COPY --from=comanage /etc/apache2/apache-include-directory-registry /etc/httpd/
+COPY --from=comanage /etc/apache2/apache-include-virtual-host-port443-base /etc/httpd/
+COPY --from=comanage /etc/apache2/apache-include-virtual-host-port80-redirect /etc/httpd/
+COPY --from=comanage /usr/local/lib/comanage_utils.sh /usr/local/lib/
+COPY --from=comanage /usr/local/lib/comanage_shibboleth_sp_utils.sh /usr/local/lib/
+COPY --from=comanage /usr/local/bin/docker-comanage-entrypoint /usr/local/bin/
 
 COPY 000-comanage.conf /etc/httpd/conf.d/
 COPY 10-php7.conf /etc/httpd/conf.modules.d/
@@ -144,6 +89,9 @@ COPY native.logger /etc/shibboleth/
 COPY httpd.conf /etc/httpd/conf/
 COPY sendtierbeacon.sh /usr/local/bin/sendtierbeacon.sh
 COPY setupcron.sh /usr/local/bin/setupcron.sh
+COPY docker-comanage-entrypoint /usr/local/bin/
+COPY docker-comanage-shibboleth-sp-entrypoint /usr/local/bin/
+COPY docker-supervisord-entrypoint /usr/local/bin/
 
 RUN cd /etc/httpd/conf.d \
     && rm -f autoindex.conf ssl.conf userdir.conf welcome.conf \
@@ -152,7 +100,11 @@ RUN cd /etc/httpd/conf.d \
     && ln -s /etc/pki/tls/private/localhost.key privkey.pem \
     && chmod 755 /usr/local/bin/sendtierbeacon.sh \
     && chmod 755 /usr/local/bin/setupcron.sh \
-    && /usr/local/bin/setupcron.sh
+    && /usr/local/bin/setupcron.sh \
+    && cd /var/www/html \
+    && ln -s ${COMANAGE_REGISTRY_DIR}/app/webroot registry \
+    && rm -rf ${COMANAGE_REGISTRY_DIR}/local/* \
+    && chown -R apache:apache ${COMANAGE_REGISTRY_DIR}/app/tmp
 
 # Allow values for first administrator bootstrapped into the
 # platform to be specified at image build time, in addition to
@@ -169,15 +121,9 @@ ENV COMANAGE_REGISTRY_ADMIN_FAMILY_NAME ${COMANAGE_REGISTRY_ADMIN_FAMILY_NAME:-A
 ENV COMANAGE_REGISTRY_ADMIN_USERNAME ${COMANAGE_REGISTRY_ADMIN_USERNAME:-registry.admin}
 ENV COMANAGE_REGISTRY_ENABLE_POOLING ${COMANAGE_REGISTRY_ENABLE_POOLING:-No}
 
+VOLUME ${COMANAGE_REGISTRY_DIR}/local /etc/shibboleth
+
 EXPOSE 80 443
-
-VOLUME ["/srv/comanage-registry/local"]
-
-VOLUME ["/etc/shibboleth"]
-
-COPY docker-comanage-entrypoint /usr/local/bin/
-COPY docker-comanage-shibboleth-sp-entrypoint /usr/local/bin/
-COPY docker-supervisord-entrypoint /usr/local/bin/
 
 # TIER Beacon Opt-out
 #

@@ -16,7 +16,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-FROM sphericalcowgroup/comanage-registry-slapd-base
+ARG COMANAGE_REGISTRY_SLAPD_BASE_IMAGE_VERSION=2
+FROM comanage-registry-slapd-base:${COMANAGE_REGISTRY_SLAPD_BASE_IMAGE_VERSION}
+
+ARG COMANAGE_REGISTRY_SLAPD_BASE_IMAGE_VERSION
+ENV COMANAGE_REGISTRY_SLAPD_BASE_IMAGE_VERSION ${COMANAGE_REGISTRY_SLAPD_BASE_IMAGE_VERSION}
+LABEL comanage_registry_slapd_base_image_version=${COMANAGE_REGISTRY_SLAPD_BASE_IMAGE_VERSION}
 
 COPY docker-slapd-entrypoint /usr/local/bin/
 

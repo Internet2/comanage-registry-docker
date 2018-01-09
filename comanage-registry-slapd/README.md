@@ -18,96 +18,121 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 -->
-
 # OpenLDAP slapd for COmanage Registry
 
-A simple example demonstrating how to create an image and container
-based on OpenLDAP slapd to use with COmanage Registry containers. 
+Intended to build an OpenLDAP slapd image to use with COmanage Registry.
 
-## Build
+## Build Arguments
 
-```
-docker build -t comanage-registry-slapd .
-```
+No arguments are required for building the image.
 
-## Run
-
-Create a user-defined network bridge with
+The following arguments may be supplied during the build:
 
 ```
-docker network create --driver=bridge \
-  --subnet=192.168.0.0/16 \
-  --gateway=192.168.0.100 \
-  comanage-registry-internal-network
+--build-arg COMANAGE_REGISTRY_SLAPD_BASE_IMAGE_VERSION=<slapd base image version>
 ```
 
-and then mount a directory such as `/tmp/slapd-data`
-to `/var/lib/ldap` inside the container to persist
-data and `/tmp/slapd-config` to `/etc/ldap/slapd.d`
-inside the container to persist the configuration, eg.
+## Build Requirements
+
+This image uses a [multi-stage build](https://docs.docker.com/develop/develop-images/multistage-build/).
+It requires that the [OpenLDAP slapd base image](../comanage-registry-slapd-base/README.md) 
+be built first.
+
+## Building
 
 ```
-docker run -d --name comanage-registry-slapd \
-  -v /tmp/slapd-data:/var/lib/ldap \
-  -v /tmp/slapd-config:/etc/ldap/slapd.d \
-  --network comanage-registry-internal-network \
-  -p 389:389 \
-  sphericalcowgroup/comanage-registry-slapd
-
+docker build \
+  --build-arg COMANAGE_REGISTRY_SLAPD_BASE_IMAGE_VERSION=<slapd base image version> \
+  -t comanage-registry-slapd:<tag> .
 ```
 
-The following environment variables can be set:
-
-* `OLC_SUFFIX`: Directory suffix (default is `dc=my,dc=org`)
-* `OLC_ROOT_DN`: DN for the directory admin (default is `cn=admin,dc=my,dc=org`)
-* `OLC_ROOT_PW`: Password for the root DN (default is `password`)
-
-For example
+## Building Example
 
 ```
-docker run -d --name comanage-registry-slapd \
-  -v /tmp/slapd-data:/var/lib/ldap \
-  -v /tmp/slapd-config:/etc/ldap/slapd.d \
-  --network comanage-registry-internal-network \
-  -e OLC_SUFFIX=dc=my,dc=org \
+export COMANAGE_REGISTRY_SLAPD_BASE_IMAGE_VERSION=1
+export COMANAGE_REGISTRY_SLAPD_IMAGE_VERSION=1
+TAG="${COMANAGE_REGISTRY_SLAPD_IMAGE_VERSION}"
+docker build \
+  --build-arg COMANAGE_REGISTRY_SLAPD_BASE_IMAGE_VERSION=${COMANAGE_REGISTRY_SLAPD_BASE_IMAGE_VERSION} \
+  -t comanage-registry-slapd:$TAG .
+```
+
+## Volumes and Data Persistence
+
+See [OpenLDAP slapd for COmanage Registry Volumes and Data Persistence](../docs/openldap-volumes-and-data-persistence.md).
+
+
+## Environment Variables
+
+See the [list of environment variables common to slapd images](../docs/slapd-common-environment-variables.md)
+including this image.
+
+## Ports
+
+By default the container instantiated from the image binds to 127.0.0.1 and
+listens for LDAP protocol traffic on port 389 only. To bind to other or all
+network interfaces and listen on port 636 as well override the default
+command for the image (see below for details).
+
+## Running
+
+See other documentation in this repository for details on how to orchestrate
+running this image with other images using an orchestration tool like
+Docker Compose, Docker Swarm, or Kubernetes.
+
+To run this image:
+
+```
+docker run -d \
+  --name comanage-registry-ldap \
   -e OLC_ROOT_DN=cn=admin,dc=my,dc=org \
-  -e OLC_ROOT_PW=password \
-  -p 389:389 \
-  comanage-registry-slapd
-```
-
-To support TLS mount or copy in an X.509 certificate, private key,
-and CA signing certificate or chain file like this:
-
-```
-docker run -d --name comanage-registry-slapd \
-  -v /tmp/slapd-data:/var/lib/ldap \
-  -v /tmp/slapd-config:/etc/ldap/slapd.d \
-  -v my.crt:/etc/ldap/slapd.crt \
-  -v my.key:/etc/ldap/slapd.key \
-  -v chain.pem:/etc/ldap/slapd.ca.crt \
-  --network comanage-registry-internal-network \
   -e OLC_SUFFIX=dc=my,dc=org \
+  -e OLC_ROOT_PW={SSHA}emcy1JA+mxbHH0PMPcnasE9apBStAMks \
+  -v /opt/docker/var/lib/ldap:/var/lib/ldap \
+  -v /opt/docker/etc/ldap/slapd.d:/etc/ldap/slapd.d \
+  -p 389:389 \
+  comanage-registry-slapd:2 \
+  slapd -d 256 -h 'ldapi:/// ldap:///' -u openldap -g openldap
+```
+
+To run this image with slapd using TLS and listening on port 636
+
+```
+docker run -d \
+  --name comanage-registry-ldap \
   -e OLC_ROOT_DN=cn=admin,dc=my,dc=org \
-  -e OLC_ROOT_PW=password \
-  -p 389:389 -p 636:636 \
-  sphericalcowgroup/comanage-registry-slapd
-```
-
-You may also use environment variables that point to files, for example
-
-```
-docker run -d --name comanage-registry-slapd \
-  --network comanage-registry-internal-network \
-  -v /tmp/slapd-data:/var/lib/ldap \
-  -v /tmp/slapd-config:/etc/ldap/slapd.d \
+  -e OLC_SUFFIX=dc=my,dc=org \
+  -e OLC_ROOT_PW={SSHA}emcy1JA+mxbHH0PMPcnasE9apBStAMks \
   -e SLAPD_CERT_FILE=/run/secrets/slapd_cert_file \
-  -e SLAPD_PRIVKEY_FILE=/run/secrets/slapd_privkey_file \
   -e SLAPD_CHAIN_FILE=/run/secrets/slapd_chain_file \
-  -e OLC_SUFFIX=dc=my,dc=org \
-  -e OLC_ROOT_DN=cn=admin,dc=my,dc=org \
-  -e OLC_ROOT_PW_FILE=/run/secrets/olc_root_pw \
-  -p 389:389 -p 636:636 \
-  sphericalcowgroup/comanage-registry-slapd
+  -e SLAPD_PRIVKEY_FILE=/run/secrets/slapd_privkey_file \
+  -v /opt/docker/var/lib/ldap:/var/lib/ldap \
+  -v /opt/docker/etc/ldap/slapd.d:/etc/ldap/slapd.d \
+  -p 389:389 \
+  -p 636:636 \
+  comanage-registry-slapd:2 \
+  slapd -d 256 -h 'ldapi:/// ldap:/// ldaps:///' -u openldap -g openldap
 ```
 
+## Executing LDIF Files
+
+See [Executing LDIF Files](../docs/slapd-ldif.md).
+
+## Logging
+
+The slapd daemon logs to the stdout and
+stderr of the container.
+
+## TLS Configuration
+
+See the section on environment variables and the `SLAPD_CERT_FILE`, `SLAPD_CHAIN_FILE`,
+and `SLAPD_PRIVKEY_FILE` variables.
+
+Additionally you may bind mount or COPY in an X.509 certificate file, CA chain file,
+and associated private key file. For example
+
+```
+COPY cert.pem /etc/ldap/slapd.crt
+COPY chain.pem /etc/ldap/slapd.ca.crt
+COPY privkey.pem /etc/ldap/slapd.key
+```

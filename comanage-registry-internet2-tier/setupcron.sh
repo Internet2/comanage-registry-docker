@@ -19,11 +19,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-CRONFILE=/tmp/cronfile
+CRONFILE='/tmp/cronfile'
 
 # Build and install crontab file with random start time
 # between midnight and 3:59am.
-echo "#send daily beacon to TIER Central" > ${CRONFILE}
-echo $(expr $RANDOM % 59) $(expr $RANDOM % 3) "* * * /usr/local/bin/sendtierbeacon.sh >> /tmp/logpipe 2>&1" >> ${CRONFILE}
-chmod 644 ${CRONFILE}
-crontab ${CRONFILE}
+echo '#send daily beacon to TIER Central' > "${CRONFILE}"
+echo $(expr $RANDOM % 59) $(expr $RANDOM % 3) "* * * /usr/local/bin/sendtierbeacon.sh >> /tmp/logpipe 2>&1" >> "${CRONFILE}"
+chmod 644 "${CRONFILE}"
+crontab "${CRONFILE}"
