@@ -17,14 +17,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-<VirtualHost *:80>
-  ServerName http://%%SERVER_NAME%%:80
-  RewriteEngine On
-  RewriteCond %{HTTPS} off
-  RewriteRule ^ https://%{HTTP_HOST}:443%{REQUEST_URI} [R=302,L,QSA]
-</VirtualHost>
-
-<VirtualHost *:443>
   ServerName https://%%SERVER_NAME%%:443
 
   DocumentRoot /var/www/html
@@ -52,5 +44,3 @@
     AllowOverride All
     Require all granted
   </Directory>
-
-</VirtualHost>

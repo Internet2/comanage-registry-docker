@@ -1,4 +1,4 @@
-# COmanage Registry Dockerfile template
+# COmanage Registry Dockerfile
 #
 # Portions licensed to the University Corporation for Advanced Internet
 # Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -16,14 +16,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
-# Official PHP image with Apache HTTPD includes
-# --with-openssl
-# --with-mbstring
-#  and includes pdo
-# but xls, pdo_mysql, pdo_pgsql, mysqli, pgsql, 
-# and ldap extensions must be built.
-FROM php:7.0-apache-jessie
+ARG COMANGE_REGISTRY_VERSION
+
+FROM sphericalcowgroup/comanage-registry-base:${COMANAGE_REGISTRY_VERSION}
 
 RUN apt-get update \
       && apt-get install -y --no-install-recommends \
