@@ -79,7 +79,7 @@ RUN wget -O xmlsecc.tar.gz "${XMLSECC_URL}" \
       && cd .. \
       && rm -r src 
 
-ARG XMLTOOLING_URL=http://shibboleth.net/downloads/c++-opensaml/latest/xmltooling-1.6.2.tar.gz
+ARG XMLTOOLING_URL=http://shibboleth.net/downloads/c++-opensaml/latest/xmltooling-1.6.3.tar.gz
 
 RUN wget -O xmltooling.tar.gz "${XMLTOOLING_URL}" \
       && mkdir -p src \
@@ -131,22 +131,8 @@ RUN wget -O shibboleth-sp.tar.gz "${SHIBBOLETH_SP_URL}" \
       && cd .. \
       && rm -r src 
 
-COPY shib2.load /etc/apache2/mods-available
-
-RUN /usr/sbin/useradd --system _shibd \
-      && mkdir -p /var/run/shibboleth \
-      && chown _shibd:_shibd /var/run/shibboleth \
-      && chown -R _shibd:_shibd /opt/shibboleth-sp/var \
-      && cp -a /opt/shibboleth-sp/etc/shibboleth /etc/shibboleth \
-      && rm -f /etc/shibboleth/shibboleth2.xml \
-      && chown _shibd:_shibd /etc/shibboleth/sp-cert.pem \
-      && chown _shibd:_shibd /etc/shibboleth/sp-key.pem \
-      && cd /opt/shibboleth-sp/etc \
-      && rm -rf shibboleth \
-      && ln -s /etc/shibboleth shibboleth \
-      && a2enmod shib2 \
-      && apt-get install -y --no-install-recommends supervisor \
-      && mkdir -p /var/log/supervisor
+COPY shib2.load /opt/shibboleth-sp/etc/shibboleth/shib2.load
+COPY shibboleth2.xml.template /opt/shibboleth-sp/etc/shibboleth/shibboleth2.xml.template
 
 RUN apt-get update && apt-get install -y \
       && apt-get purge -y \
@@ -159,29 +145,3 @@ RUN apt-get update && apt-get install -y \
          libssl-dev \
          make \
       && apt-get clean
-
-COPY 000-site.conf /etc/apache2/sites-available/000-site.conf
-COPY 000-site-behind-proxy.conf /etc/apache2/sites-available/000-site-behind-proxy.conf
-
-RUN a2enmod headers \
-      && a2enmod ssl \
-      && a2enmod rewrite \
-      && a2dissite 000-default.conf \
-      && a2ensite 000-site.conf \
-      && a2disconf other-vhosts-access-log \
-      && cd /etc/apache2 \
-      && ln -s /etc/ssl/certs/ssl-cert-snakeoil.pem cert.pem \
-      && ln -s /etc/ssl/private/ssl-cert-snakeoil.key privkey.pem
-
-COPY shibboleth2.xml.template /etc/shibboleth/shibboleth2.xml.template
-COPY supervisord.conf /usr/local/etc/supervisord.conf
-
-COPY docker-apache-entrypoint /usr/local/bin/
-COPY docker-shibd-entrypoint /usr/local/bin/
-COPY apache2-foreground /usr/local/bin/
-
-WORKDIR /var/www
-
-EXPOSE 80 443
-
-ENTRYPOINT ["/usr/bin/supervisord", "-c", "/usr/local/etc/supervisord.conf"]
