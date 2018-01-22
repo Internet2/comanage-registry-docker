@@ -1,4 +1,4 @@
-# COmanage Registry Apache HTTP Server configuration
+# COmanage Registry Dockerfile template
 #
 # Portions licensed to the University Corporation for Advanced Internet
 # Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -16,21 +16,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+ARG COMANAGE_REGISTRY_VERSION=develop
+FROM sphericalcowgroup/comanage-registry-base:${COMANAGE_REGISTRY_VERSION}
 
-Include apache-include-virtual-host-port80-redirect
+COPY basic-auth /etc/apache2/
+COPY 000-comanage.conf /etc/apache2/sites-available/
 
-<VirtualHost *:443>
-
-Include apache-include-virtual-host-port443-base
-
-Include apache-include-directory-registry
-
-<Directory /var/www/html/registry/auth/login>
-AuthType Basic
-AuthName "COmanage Registry Login"
-AuthBasicProvider file
-AuthUserFile "/etc/apache2/basic-auth"
-Require valid-user
-</Directory>
-
-</VirtualHost>
+RUN a2ensite 000-comanage
