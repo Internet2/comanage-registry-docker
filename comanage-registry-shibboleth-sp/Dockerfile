@@ -37,11 +37,15 @@ RUN /usr/sbin/useradd --system _shibd \
       && cd /opt/shibboleth-sp/etc \
       && rm -rf shibboleth \
       && ln -s /etc/shibboleth shibboleth \
-      && a2enmod shib2 \
-      && apt-get install -y --no-install-recommends supervisor \
+      && a2enmod shib2
+
+RUN apt-get install -y --no-install-recommends supervisor \
       && mkdir -p /var/log/supervisor
 
 COPY supervisord.conf /usr/local/etc/supervisord.conf
+
+COPY 000-comanage.conf /etc/apache2/sites-available/
+RUN a2ensite 000-comanage
 
 COPY docker-comanage-shibboleth-sp-entrypoint /usr/local/bin/
 

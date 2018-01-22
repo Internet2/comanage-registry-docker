@@ -77,7 +77,11 @@ RUN a2enmod headers \
       && a2disconf other-vhosts-access-log \
       && cd /etc/apache2 \
       && ln -s /etc/ssl/certs/ssl-cert-snakeoil.pem cert.pem \
-      && ln -s /etc/ssl/private/ssl-cert-snakeoil.key privkey.pem \
+      && ln -s /etc/ssl/private/ssl-cert-snakeoil.key privkey.pem
+
+COPY apache-include-directory-registry /etc/apache2/
+COPY apache-include-virtual-host-port443-base /etc/apache2/
+COPY apache-include-virtual-host-port80-redirect /etc/apache2/
 
 COPY docker-comanage-entrypoint /usr/local/bin/
 
