@@ -235,8 +235,8 @@ docker stack rm comanage-registry
 ## Advanced Configuration Options
 
 * [Environment Variables](#environ)
-* [Secrets](#secrets)
 * [Apache HTTP ServerName](#servername)
+* [X.509 Certificates and Private Keys](#certskeys)
 * [Full Control](#full)
 
 ## Environment Variables <a name="environ"></a>
@@ -468,8 +468,7 @@ to configure SAML federation details.
   * Description: Associated private key for ldaps:// in PEM format
   * Default: none
 
-
-## X.509 Certificates and Private Keys
+## X.509 Certificates and Private Keys <a name="certskeys"></a>
 
 ### COmanage Registry
 
