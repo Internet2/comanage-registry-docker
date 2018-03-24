@@ -59,3 +59,5 @@ RUN echo "LoadModule auth_openidc_module /usr/lib/apache2/modules/mod_auth_openi
 
 COPY 000-comanage.conf /etc/apache2/sites-available/
 RUN a2ensite 000-comanage
+
+COPY htaccess /srv/comanage-registry/app/webroot/.htaccess
