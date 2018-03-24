@@ -117,6 +117,8 @@ RUN mkdir -p "$COMANAGE_REGISTRY_DIR" \
 
 COPY docker-comanage-entrypoint /usr/local/bin/
 
+COPY htaccess /srv/comanage-registry/app/webroot/.htaccess
+
 # expose COmanage Registry local directory
 VOLUME ["/local"]
 
