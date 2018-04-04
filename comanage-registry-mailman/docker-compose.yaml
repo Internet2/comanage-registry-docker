@@ -1,0 +1,131 @@
+# Docker Compose file for Mailman 3 for COmanage Registry
+#
+# Portions licensed to the University Corporation for Advanced Internet
+# Development, Inc. ("UCAID") under one or more contributor license agreements.
+# See the NOTICE file distributed with this work for additional information
+# regarding copyright ownership.
+#
+# UCAID licenses this file to you under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with the
+# License. You may obtain a copy of the License at:
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# This is an example compose file. Be sure to modify it as necessary
+# for your own deployment.
+
+version: '2'
+
+services:
+    mailman-core:
+        image: sphericalcowgroup/mailman-core:0.1.7
+        container_name: mailman-core
+        hostname: mailman-core
+        volumes:
+            - /opt/mailman/core:/opt/mailman/
+        stop_grace_period: 30s
+        links:
+            - database:database
+        depends_on:
+            - database
+        environment:
+            - MAILMAN_DATABASE_URL=postgres://mailman:gECPnaqXVID80TlRS5ZG@database/mailmandb
+            - MAILMAN_DATABASE_TYPE=postgres
+            - MAILMAN_DATABASE_CLASS=mailman.database.postgresql.PostgreSQLDatabase
+            - HYPERKITTY_API_KEY=HbTKLdrhRxUX96f5bD2g
+            - MAILMAN_REST_USER=restadmin
+            - MAILMAN_REST_PASSWORD=K6gfcC9uHQMXr448Kmdi
+            - SMTP_HOST=postfix
+            - SMTP_PORT=25
+        expose:
+            - "8001"
+        networks:
+            mailman:
+                ipv4_address: 172.19.199.2
+
+    mailman-web:
+        image: sphericalcowgroup/mailman-web:0.1.7
+        container_name: mailman-web
+        hostname: mailman-web
+        depends_on:
+            - database
+        links:
+            - mailman-core:mailman-core
+            - database:database
+        volumes:
+            - /opt/mailman/web:/opt/mailman-web-data
+        environment:
+            - MAILMAN_DATABASE_TYPE=postgres
+            - MAILMAN_DATABASE_URL=postgres://mailman:gECPnaqXVID80TlRS5ZG@database/mailmandb
+            - HYPERKITTY_API_KEY=HbTKLdrhRxUX96f5bD2g
+            - SERVE_FROM_DOMAIN=lists-dev.sphericalcowgroup.com
+            - MAILMAN_ADMIN_USER=mailman_admin
+            - MAILMAN_ADMIN_EMAIL=skoranda@gmail.com
+            - MAILMAN_WEB_SECRET_KEY=fPe7d9e0PKF8ryySOow0
+            - MAILMAN_REST_USER=restadmin
+            - MAILMAN_REST_PASSWORD=K6gfcC9uHQMXr448Kmdi
+            - SMTP_HOST=postfix
+            - SMTP_PORT=25
+        networks:
+            mailman:
+                ipv4_address: 172.19.199.3
+
+    database:
+        image: postgres:9.6
+        container_name: mailman-database
+        environment:
+            - POSTGRES_DB=mailmandb
+            - POSTGRES_USER=mailman
+            - POSTGRES_PASSWORD=gECPnaqXVID80TlRS5ZG
+        restart: always
+        volumes:
+            - /opt/mailman/database:/var/lib/postgresql/data
+        networks:
+            mailman:
+                ipv4_address: 172.19.199.4
+
+    postfix:
+        image: sphericalcowgroup/mailman-postfix
+        container_name: mailman-postfix
+        volumes:
+            - /opt/mailman:/opt/mailman
+        environment:
+            - POSTFIX_MAILNAME=lists-dev.sphericalcowgroup.com
+        depends_on:
+            - mailman-core
+        ports:
+            - "25:25"
+        networks:
+            mailman:
+                ipv4_address: 172.19.199.5
+
+    nginx:
+        image: sphericalcowgroup/mailman-core-nginx
+        container_name: mailman-nginx
+        volumes:
+            - /opt/mailman/web:/opt/mailman-web-data
+            - /opt/mailman/nginx/fullchain.pem:/etc/nginx/https.crt
+            - /opt/mailman/nginx/privkey.pem:/etc/nginx/https.key
+            - /opt/mailman/nginx/dhparam.pem:/etc/nginx/dhparam.pem
+        depends_on:
+            - mailman-core
+        ports:
+            - "80:80"
+            - "443:443"
+        networks:
+            mailman:
+                ipv4_address: 172.19.199.6
+
+networks:
+    mailman:
+        driver: bridge
+        ipam:
+            driver: default
+            config:
+                - subnet: 172.19.199.0/24
