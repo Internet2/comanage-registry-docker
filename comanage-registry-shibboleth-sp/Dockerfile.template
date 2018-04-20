@@ -53,7 +53,7 @@ RUN wget -O log4shib.tar.gz "${LOG4SHIB_URL}" \
       && cd .. \
       && rm -r src 
 
-ARG XERCESC_URL=http://ftp.wayne.edu/apache//xerces/c/3/sources/xerces-c-3.2.0.tar.gz
+ARG XERCESC_URL=http://www.apache.org/dist/xerces/c/3/sources/xerces-c-3.2.1.tar.gz
 
 RUN wget -O xerces.tar.gz "${XERCESC_URL}" \
       && mkdir -p src \
@@ -66,7 +66,7 @@ RUN wget -O xerces.tar.gz "${XERCESC_URL}" \
       && cd .. \
       && rm -r src 
 
-ARG XMLSECC_URL=http://ftp.wayne.edu/apache/santuario/c-library/xml-security-c-1.7.3.tar.gz
+ARG XMLSECC_URL=http://www.apache.org/dist/santuario/c-library/xml-security-c-1.7.3.tar.gz
 
 RUN wget -O xmlsecc.tar.gz "${XMLSECC_URL}" \
       && mkdir -p src \
