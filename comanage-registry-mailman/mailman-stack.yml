@@ -54,7 +54,7 @@ services:
             - HYPERKITTY_API_KEY_FILE=/run/secrets/hyperkitty_api_key
             - SERVE_FROM_DOMAIN=lists-dev.sphericalcowgroup.com
             - MAILMAN_ADMIN_USER=mailman_admin
-            - MAILMAN_ADMIN_EMAIL=skoranda@gmail.com
+            - MAILMAN_ADMIN_EMAIL=admin@local
             - MAILMAN_WEB_SECRET_KEY_FILE=/run/secrets/mailman_web_secret_key
             - MAILMAN_REST_USER=restadmin
             - MAILMAN_REST_PASSWORD_FILE=/run/secrets/mailman_rest_password
