@@ -20,7 +20,8 @@
 # Official PHP image with Apache HTTPD includes
 # --with-openssl
 # --with-mbstring
-# but xls, pdo, pdo_mysql, pdo_pgsql, mysqli, pgsql, 
+#  and includes pdo
+# but xls, pdo_mysql, pdo_pgsql, mysqli, pgsql, 
 # and ldap extensions must be built.
 FROM php:7.0-apache
 
@@ -168,7 +169,7 @@ RUN apt-get update && apt-get install -y \
       && docker-php-ext-configure pgsql -with-pgsql=/usr/local/pgsql \
       && docker-php-ext-configure ldap --with-libdir=lib/x86_64-linux-gnu \
       && docker-php-ext-configure mysqli --with-mysqli=/usr/bin/mysql_config \
-      && docker-php-ext-install xsl pdo pdo_mysql pdo_pgsql mysqli pgsql ldap \
+      && docker-php-ext-install xsl pdo_mysql pdo_pgsql mysqli pgsql ldap \
       && docker-php-source delete \
       && apt-get purge -y \
          libldap2-dev \
