@@ -281,4 +281,13 @@ fi
 # Configure Apache HTTP Server with the server name.
 sed -i -e s@%%SERVER_NAME%%@"${SERVER_NAME:-unknown}"@g /etc/httpd/conf.d/000-comanage.conf
 
+# Create pipes to use for COmanage Registry instead of standard log files.
+mkfifo -m 666 /srv/comanage-registry/app/tmp/logs/error.log
+mkfifo -m 666 /srv/comanage-registry/app/tmp/logs/debug.log
+
+# Format any output from COmanange Registry into standard TIER form.
+(cat <> /srv/comanage-registry/app/tmp/logs/error.log | awk -v ENV="$ENV" -v UT="$USERTOKEN" '{printf "COmanage Registry error.log %s %s %s\n", ENV, UT, $0; fflush()}' 1>/dev/stdout)&
+(cat <> /srv/comanage-registry/app/tmp/logs/debug.log | awk -v ENV="$ENV" -v UT="$USERTOKEN" '{printf "COmanage Registry debug.log %s %s %s\n", ENV, UT, $0; fflush()}' 1>/dev/stdout)&
+
+# Start Apache HTTP Server
 exec /usr/sbin/httpd -DFOREGROUND

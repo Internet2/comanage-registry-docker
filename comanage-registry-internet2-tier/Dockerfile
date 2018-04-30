@@ -128,8 +128,7 @@ RUN mkdir -p "${COMANAGE_REGISTRY_DIR}" \
         && cd /var/www/html \
         && ln -s ${COMANAGE_REGISTRY_DIR}/app/webroot registry \
         && rm -rf ${COMANAGE_REGISTRY_DIR}/local/* \
-        && ln -s ${COMANAGE_REGISTRY_DIR}/local /local \
-        && sed -ie 's/'"'"'engine'"'"' => '"'"'FileLog'"'"'/'"'"'engine'"'"' => '"'"'ConsoleLog'"'"'/' "$COMANAGE_REGISTRY_DIR/app/Config/bootstrap.php" 
+        && ln -s ${COMANAGE_REGISTRY_DIR}/local /local 
 
 COPY 000-comanage.conf /etc/httpd/conf.d/
 COPY 10-php7.conf /etc/httpd/conf.modules.d/
