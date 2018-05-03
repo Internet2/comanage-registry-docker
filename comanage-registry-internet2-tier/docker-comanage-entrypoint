@@ -248,9 +248,8 @@ if [ -n "$COMANAGE_REGISTRY_ENABLE_PLUGIN" ]; then
     done
 fi
 
-# Running CakePHP console commands generates cache files so 
-# set the ownership of those files appropriately.
-chown -R apache:apache "$COMANAGE_REGISTRY_DIR/app/tmp"
+# Remove any cache files generated thus far.
+find "$COMANAGE_REGISTRY_DIR/app/tmp/cache" -type f -exec rm -f {} \;
 
 # If defined use configured location of Apache HTTP Server 
 # HTTPS certificate and key files. The certificate file may also
