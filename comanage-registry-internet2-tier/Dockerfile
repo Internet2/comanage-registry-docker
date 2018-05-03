@@ -41,7 +41,7 @@ RUN yum -y update && yum -y install \
 
 WORKDIR /usr/local/src
 
-ARG PHP_VERSION=7.2.3
+ARG PHP_VERSION=7.2.5
 ARG PHP_SRC_URL=https://github.com/php/php-src/archive/php-${PHP_VERSION}.tar.gz
 
 RUN mkdir php-src \
