@@ -1,0 +1,78 @@
+#!/bin/bash
+
+# COmanage Registry Dockerfile entrypoint
+#
+# Portions licensed to the University Corporation for Advanced Internet
+# Development, Inc. ("UCAID") under one or more contributor license agreements.
+# See the NOTICE file distributed with this work for additional information
+# regarding copyright ownership.
+#
+# UCAID licenses this file to you under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with the
+# License. You may obtain a copy of the License at:
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+if [ -n "$DEBUG" ]
+then
+    OUTPUT=/dev/stdout
+else
+    OUTPUT=/dev/null
+fi
+
+# If ENV or USERTOKEN as injected by the deployer contain a semi-colon remove it.
+if [[ $ENV =~ .*";".* ]]; then
+    ENV=`echo $ENV | tr -d ';'`
+    export ENV
+fi
+
+if [[ $USERTOKEN =~ .*";".* ]]; then
+    USERTOKEN=`echo $USERTOKEN | tr -d ';'`
+    export USERTOKEN
+fi
+
+# If ENV or USERTOKEN as injected by the deployer contain a space remove it.
+if [[ $ENV =~ [[:space:]] ]]; then
+    ENV=`echo $ENV | tr -d [:space:]`
+    export ENV
+fi
+
+if [[ $USERTOKEN =~ [[:space:]] ]]; then
+    USERTOKEN=`echo $USERTOKEN | tr -d [:space:]`
+    export USERTOKEN
+fi
+
+# Make a "console" logging pipe that anyone can write to regardless of who owns the process.
+rm -f /tmp/logpipe > "$OUTPUT" 2>&1
+mkfifo -m 666 /tmp/logpipe > "$OUTPUT" 2>&1
+cat <> /tmp/logpipe &
+
+# Format any console output from httpd into standard TIER form.
+rm -f /tmp/loghttpd > "$OUTPUT" 2>&1
+mkfifo -m 666 /tmp/loghttpd > "$OUTPUT" 2>&1
+(cat <> /tmp/loghttpd | awk -v ENV="$ENV" -v UT="$USERTOKEN" '{printf "httpd;console;%s;%s;%s\n", ENV, UT, $0; fflush()}' 1>/tmp/logpipe 2>&1)&
+
+# Format any console output from shibd into standard TIER form.
+rm -f /tmp/logshibd > "$OUTPUT" 2>&1
+mkfifo -m 666 /tmp/logshibd > "$OUTPUT" 2>&1
+(cat <> /tmp/logshibd | awk -v ENV="$ENV" -v UT="$USERTOKEN" '{printf "httpd;console;%s;%s;%s\n", ENV, UT, $0; fflush()}' 1>/tmp/logpipe 2>&1)&
+
+# Format any console output from supervisord into standard TIER form.
+rm -f /tmp/logsuperd > "$OUTPUT" 2>&1
+mkfifo -m 666 /tmp/logsuperd > "$OUTPUT" 2>&1
+(cat <> /tmp/logsuperd | awk -v ENV="$ENV" -v UT="$USERTOKEN" '{printf "supervisord;console;%s;%s;%s\n", ENV, UT, $0; fflush()}' 1>/tmp/logpipe 2>&1)&
+
+# Close stdout and stderr for this process since supervisord will write
+# to its logfile and its children are configured to write to different
+# pipes.
+exec 1<&-
+exec 2<&-
+
+# Start supervisord
+exec /usr/bin/supervisord -c /usr/local/etc/supervisord.conf

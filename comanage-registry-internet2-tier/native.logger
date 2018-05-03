@@ -28,12 +28,12 @@ log4j.category.XMLTooling.libcurl=INFO
 # define the appender
 
 log4j.appender.native_log=org.apache.log4j.FileAppender
-log4j.appender.native_log.fileName=/var/log/shibboleth-www/native.log
+log4j.appender.native_log.fileName=/tmp/logpipe
 log4j.appender.native_log.layout=org.apache.log4j.PatternLayout
-log4j.appender.native_log.layout.ConversionPattern=shibd native.log %d{%Y-%m-%d %H:%M:%S} %p %c %x: %m%n
+log4j.appender.native_log.layout.ConversionPattern=shibd;native.log;${ENV};${USERTOKEN};%d{%Y-%m-%d %H:%M:%S} %p %c %x: %m%n
 
 log4j.appender.warn_log=org.apache.log4j.FileAppender
-log4j.appender.warn_log.fileName=/var/log/shibboleth-www/native_warn.log
+log4j.appender.warn_log.fileName=/tmp/logpipe
 log4j.appender.warn_log.layout=org.apache.log4j.PatternLayout
-log4j.appender.warn_log.layout.ConversionPattern=shibd native_warn.log %d{%Y-%m-%d %H:%M:%S} %p %c %x: %m%n
+log4j.appender.warn_log.layout.ConversionPattern=shibd;native_warn.log;${ENV};${USERTOKEN};%d{%Y-%m-%d %H:%M:%S} %p %c %x: %m%n
 log4j.appender.warn_log.threshold=WARN

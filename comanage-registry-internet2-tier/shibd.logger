@@ -42,22 +42,22 @@ log4j.additivity.Shibboleth-TRANSACTION=false
 # define the appenders
 
 log4j.appender.shibd_log=org.apache.log4j.FileAppender
-log4j.appender.shibd_log.fileName=/var/log/shibboleth/shibd.log
+log4j.appender.shibd_log.fileName=/tmp/logpipe
 log4j.appender.shibd_log.layout=org.apache.log4j.PatternLayout
-log4j.appender.shibd_log.layout.ConversionPattern=shibd shibd.log %d{%Y-%m-%d %H:%M:%S} %p %c %x: %m%n
+log4j.appender.shibd_log.layout.ConversionPattern=shibd;shibd.log;${ENV};${USERTOKEN};%d{%Y-%m-%d %H:%M:%S} %p %c %x: %m%n
 
 log4j.appender.warn_log=org.apache.log4j.FileAppender
-log4j.appender.warn_log.fileName=/var/log/shibboleth/shibd_warn.log
+log4j.appender.warn_log.fileName=/tmp/logpipe
 log4j.appender.warn_log.layout=org.apache.log4j.PatternLayout
-log4j.appender.warn_log.layout.ConversionPattern=shibd shibd_warn.log %d{%Y-%m-%d %H:%M:%S} %p %c %x: %m%n
+log4j.appender.warn_log.layout.ConversionPattern=shibd;shibd_warn.log;${ENV};${USERTOKEN};%d{%Y-%m-%d %H:%M:%S} %p %c %x: %m%n
 log4j.appender.warn_log.threshold=WARN
 
 log4j.appender.tran_log=org.apache.log4j.FileAppender
-log4j.appender.tran_log.fileName=/var/log/shibboleth/transaction.log
+log4j.appender.tran_log.fileName=/tmp/logpipe
 log4j.appender.tran_log.layout=org.apache.log4j.PatternLayout
-log4j.appender.tran_log.layout.ConversionPattern=shibd transaction.log %d{%Y-%m-%d %H:%M:%S} %p %c %x: %m%n
+log4j.appender.tran_log.layout.ConversionPattern=shibd;transaction.log;${ENV};${USERTOKEN};%d{%Y-%m-%d %H:%M:%S} %p %c %x: %m%n
 
 log4j.appender.sig_log=org.apache.log4j.FileAppender
-log4j.appender.sig_log.fileName=/var/log/shibboleth/signature.log
+log4j.appender.sig_log.fileName=/tmp/logpipe
 log4j.appender.sig_log.layout=org.apache.log4j.PatternLayout
-log4j.appender.sig_log.layout.ConversionPattern=shibd signature.log %m
+log4j.appender.sig_log.layout.ConversionPattern=shibd;signature.log${ENV};${USERTOKEN};%m

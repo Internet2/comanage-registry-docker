@@ -98,10 +98,13 @@ RUN yum -y update && yum -y install \
         mod_ssl \
         mariadb-libs \
         postgresql \
+        python-pip \
         shibboleth \
-        supervisor \
         wget \
-        zlib
+        zlib \
+    && pip install --upgrade pip \
+    && pip install supervisor \
+    && yum clean -y all
 
 COPY --from=php-build /usr/lib64/httpd/modules/libphp7.so /usr/lib64/httpd/modules/
 COPY --from=php-build /usr/local/lib/php /usr/local/lib/php/
@@ -138,13 +141,7 @@ COPY shibd.logger /etc/shibboleth/
 COPY native.logger /etc/shibboleth/
 COPY httpd.conf /etc/httpd/conf/
 
-RUN ln -sfT /dev/stdout /var/log/httpd/access_log \
-    && ln -sfT /dev/stdout /var/log/httpd/error_log \
-    && ln -sfT /dev/stdout /var/log/httpd/ssl_error_log \
-    && ln -sfT /dev/stdout /var/log/httpd/ssl_access_log \
-    && ln -sfT /dev/stdout /var/log/shibboleth-www/native.log \
-    && ln -sfT /dev/stdout /var/log/shibboleth-www/native_warn.log \
-    && cd /etc/httpd/conf.d \
+RUN cd /etc/httpd/conf.d \
     && rm -f autoindex.conf ssl.conf userdir.conf welcome.conf \
     && cd /etc/httpd \
     && ln -s /etc/pki/tls/certs/localhost.crt cert.pem \
@@ -173,5 +170,6 @@ VOLUME ["/etc/shibboleth"]
 
 COPY docker-comanage-entrypoint /usr/local/bin/
 COPY docker-comanage-shibboleth-sp-entrypoint /usr/local/bin/
+COPY docker-supervisord-entrypoint /usr/local/bin/
 
-ENTRYPOINT ["/usr/bin/supervisord", "-c", "/usr/local/etc/supervisord.conf"]
+ENTRYPOINT ["docker-supervisord-entrypoint"]

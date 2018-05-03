@@ -100,15 +100,27 @@ if [ -n "$SHIBBOLETH_SP_PRIVKEY" ]; then
     chmod 0600 /etc/shibboleth/sp-key.pem
 fi
 
-# Send logging to container stdout.
-pushd /var/log/shibboleth
-/bin/rm -f shibd.log transaction.log shibd_warn.log signature.log
-/bin/ln -sfT /dev/stdout shibd.log
-/bin/ln -sfT /dev/stdout shibd_warn.log
-/bin/ln -sfT /dev/stdout transaction.log
-/bin/ln -sfT /dev/stdout signature.log
-chown shibd:shibd shibd.log transaction.log shibd_warn.log signature.log
-popd
+# If ENV or USERTOKEN as injected by the deployer contain a semi-colon remove it.
+if [[ $ENV =~ .*";".* ]]; then
+    ENV=`echo $ENV | tr -d ';'`
+    export ENV
+fi
+
+if [[ $USERTOKEN =~ .*";".* ]]; then
+    USERTOKEN=`echo $USERTOKEN | tr -d ';'`
+    export USERTOKEN
+fi
+
+# If ENV or USERTOKEN as injected by the deployer contain a space remove it.
+if [[ $ENV =~ [[:space:]] ]]; then
+    ENV=`echo $ENV | tr -d [:space:]`
+    export ENV
+fi
+
+if [[ $USERTOKEN =~ [[:space:]] ]]; then
+    USERTOKEN=`echo $USERTOKEN | tr -d [:space:]`
+    export USERTOKEN
+fi
 
 # Start the daemon.
 export LD_LIBRARY_PATH=/opt/shibboleth/lib64
