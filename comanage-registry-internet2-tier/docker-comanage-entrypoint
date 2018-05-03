@@ -99,21 +99,53 @@ fi
 email_config="$COMANAGE_REGISTRY_DIR/local/Config/email.php"
 
 if [ ! -e "$email_config" ]; then
+    # If the deployer has injected an email for from then use it,
+    # otherwise set a default purely as a template that can edited
+    # easier later.
+    if [ -n "$COMANAGE_REGISTRY_EMAIL_FROM" ]; then
+        email_from="$COMANAGE_REGISTRY_EMAIL_FROM"
+    else
+        email_from="array('account@gmail.com' => 'Registry')"
+    fi
+
+    # If the injected email from does not include a single quote (')
+    # then add them to make it a PHP string.
+    if [[ ! $email_from =~ .*"'".* ]]; then
+        email_from="'$email_from'"
+    fi
+
     cat > "$email_config" <<EOF
 <?php
 
 class EmailConfig {
 
   public \$default = array(
-    'from' => ${COMANAGE_REGISTRY_EMAIL_FROM:-array('account@gmail.com' => 'Registry')},
+    'from' => $email_from,
     'transport' => '${COMANAGE_REGISTRY_EMAIL_TRANSPORT:-Smtp}',
     'host' => '${COMANAGE_REGISTRY_EMAIL_HOST:-tls://smtp.gmail.com}',
     'port' => ${COMANAGE_REGISTRY_EMAIL_PORT:-465},
-    'username' => '${COMANAGE_REGISTRY_EMAIL_ACCOUNT:-account@gmail.com}',
-    'password' => '${COMANAGE_REGISTRY_EMAIL_ACCOUNT_PASSWORD:-password}'
+EOF
+
+    # If the deployer has injected a username then add it to the configuration.
+    if [ -n "$COMANAGE_REGISTRY_EMAIL_ACCOUNT" ]; then
+       cat >> "$email_config" <<EOF
+    'username' => '$COMANAGE_REGISTRY_EMAIL_ACCOUNT',
+EOF
+    fi
+
+    # If the deployer has injected a password then add it to the configuration.
+    if [ -n "$COMANAGE_REGISTRY_EMAIL_ACCOUNT_PASSWORD" ]; then
+        cat >> "$email_config" <<EOF
+    'password' => '$COMANAGE_REGISTRY_EMAIL_ACCOUNT_PASSWORD',
+EOF
+    fi
+
+    # Complete the PHP array.
+    cat >> "$email_config" <<EOF
   );
 }
 EOF
+
 fi
 
 # Loop until we are able to open a connection to the database.
