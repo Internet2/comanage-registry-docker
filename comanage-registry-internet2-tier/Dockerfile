@@ -88,6 +88,7 @@ RUN yum -y install epel-release
 COPY shibboleth.repo /etc/yum.repos.d/
 
 RUN yum -y update && yum -y install \
+        cronie \
         httpd \
         libargon2 \
         libcurl \
@@ -113,6 +114,7 @@ COPY --from=php-build /usr/local/bin /usr/local/bin/
 
 ARG COMANAGE_REGISTRY_VERSION
 ARG COMANAGE_REGISTRY_SRC_URL=https://github.com/Internet2/comanage-registry/archive/${COMANAGE_REGISTRY_VERSION}.tar.gz
+ENV COMANAGE_REGISTRY_VERSION ${COMANAGE_REGISTRY_VERSION}
 
 LABEL comanage_registry_version=${COMANAGE_REGISTRY_VERSION}
 LABEL comanage_registry_src_url=${COMANAGE_REGISTRY_SRC_URL}
@@ -140,12 +142,17 @@ COPY supervisord.conf /usr/local/etc/supervisord.conf
 COPY shibd.logger /etc/shibboleth/
 COPY native.logger /etc/shibboleth/
 COPY httpd.conf /etc/httpd/conf/
+COPY sendtierbeacon.sh /usr/local/bin/sendtierbeacon.sh
+COPY setupcron.sh /usr/local/bin/setupcron.sh
 
 RUN cd /etc/httpd/conf.d \
     && rm -f autoindex.conf ssl.conf userdir.conf welcome.conf \
     && cd /etc/httpd \
     && ln -s /etc/pki/tls/certs/localhost.crt cert.pem \
-    && ln -s /etc/pki/tls/private/localhost.key privkey.pem
+    && ln -s /etc/pki/tls/private/localhost.key privkey.pem \
+    && chmod 755 /usr/local/bin/sendtierbeacon.sh \
+    && chmod 755 /usr/local/bin/setupcron.sh \
+    && /usr/local/bin/setupcron.sh
 
 # Allow values for first administrator bootstrapped into the
 # platform to be specified at image build time, in addition to
@@ -171,5 +178,20 @@ VOLUME ["/etc/shibboleth"]
 COPY docker-comanage-entrypoint /usr/local/bin/
 COPY docker-comanage-shibboleth-sp-entrypoint /usr/local/bin/
 COPY docker-supervisord-entrypoint /usr/local/bin/
+
+# TIER Beacon Opt-out
+#
+# Completely uncomment the following ENV line to prevent the containers from
+# sending analytics information to Internet2.  With the default/release
+# configuration, it will only send product (Shibb/Grouper/COmanage) and version
+# (3.3.1-17040, etc) once daily between midnight and 4am.  There is no
+# configuration or private information collected or sent.  This data helps with
+# the scaling and funding of TIER.  Please do not disable it if you find the
+# TIER tools useful.  To keep it commented, keep multiple comments on the
+# following line (to prevent other scripts from processing it).
+#####     ENV TIER_BEACON_OPT_OUT True
+
+ENV TIER_RELEASE=180501
+ENV TIER_MAINTAINER=tier
 
 ENTRYPOINT ["docker-supervisord-entrypoint"]

@@ -68,6 +68,13 @@ rm -f /tmp/logsuperd > "$OUTPUT" 2>&1
 mkfifo -m 666 /tmp/logsuperd > "$OUTPUT" 2>&1
 (cat <> /tmp/logsuperd | awk -v ENV="$ENV" -v UT="$USERTOKEN" '{printf "supervisord;console;%s;%s;%s\n", ENV, UT, $0; fflush()}' 1>/tmp/logpipe 2>&1)&
 
+# Format any output from cron into standard TIER form.
+rm -f /var/log/cron > "$OUTPUT" 2>&1
+rm -f /tmp/logcrond > "$OUTPUT" 2>&1
+mkfifo -m 666 /tmp/logcrond > "$OUTPUT" 2>&1
+ln -s /tmp/logcrond /var/log/cron > "$OUTPUT" 2>&1
+(cat <> /tmp/logcrond | awk -v ENV="$ENV" -v UT="$USERTOKEN" '{printf "crond;cron;%s;%s;%s\n", ENV, UT, $0; fflush()}' 1>/tmp/logpipe 2>&1)&
+
 # Close stdout and stderr for this process since supervisord will write
 # to its logfile and its children are configured to write to different
 # pipes.
