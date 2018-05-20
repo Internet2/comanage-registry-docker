@@ -36,6 +36,7 @@ ENV OLC_ROOT_PW ${OLC_ROOT_PW:-password}
 
 COPY eduperson.ldif /etc/ldap/schema/
 COPY openssh-lpk.ldif /etc/ldap/schema/
+COPY voperson.ldif /etc/ldap/schema/
 
 VOLUME [ "/var/lib/ldap", "/etc/ldap/slapd.d" ]
 
