@@ -16,7 +16,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-FROM php:7.0-apache
+FROM php:7.0-apache-jessie
 
 RUN apt-get update && apt-get install -y \
          libldap-2.4-2 \

@@ -23,7 +23,7 @@
 #  and includes pdo
 # but xls, pdo_mysql, pdo_pgsql, mysqli, pgsql, 
 # and ldap extensions must be built.
-FROM php:7.0-apache
+FROM php:7.0-apache-jessie
 
 RUN apt-get update \
       && apt-get install -y --no-install-recommends \
