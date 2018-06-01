@@ -40,6 +40,7 @@ COPY voperson.ldif /etc/ldap/schema/
 
 VOLUME [ "/var/lib/ldap", "/etc/ldap/slapd.d" ]
 
+COPY comanage_ldap_utils.sh /usr/local/lib/
 COPY docker-slapd-entrypoint /usr/local/bin/
 
 ENTRYPOINT ["docker-slapd-entrypoint"]
