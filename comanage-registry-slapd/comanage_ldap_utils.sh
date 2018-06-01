@@ -341,7 +341,7 @@ function comanage_ldap_utils::copy_cert_and_secrets() {
 # Globals:
 #   None
 # Arguments:
-#   None
+#   Command and arguments to exec
 # Returns:
 #   Does not return
 ##########################################
