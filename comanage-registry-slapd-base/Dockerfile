@@ -1,4 +1,4 @@
-# slapd Dockerfile template for use with COmanage Registry
+# slapd base Dockerfile for use with COmanage Registry
 #
 # Portions licensed to the University Corporation for Advanced Internet
 # Development, Inc. ("UCAID") under one or more contributor license agreements.
@@ -41,9 +41,6 @@ COPY voperson.ldif /etc/ldap/schema/
 VOLUME [ "/var/lib/ldap", "/etc/ldap/slapd.d" ]
 
 COPY comanage_ldap_utils.sh /usr/local/lib/
-COPY docker-slapd-entrypoint /usr/local/bin/
-
-ENTRYPOINT ["docker-slapd-entrypoint"]
 
 EXPOSE 389
 
