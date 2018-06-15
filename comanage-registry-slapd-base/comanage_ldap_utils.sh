@@ -232,6 +232,67 @@ EOF
 }
 
 ##########################################
+# Bootstrap the proxy.
+# Globals:
+#   OLC_SUFFIX
+#   OLC_ROOT_DN
+#   OLC_ROOT_PW
+# Arguments:
+#   None
+# Returns:
+#   None
+##########################################
+function comanage_ldap_utils::bootstrap_proxy() {
+    local olc_root_pw_tmp=`cat /dev/urandom | tr -dc 'a-zA-Z0-9' | 
+        fold -w 32 | head -n 1`
+    local olc_root_pw_tmp_hash=`/usr/sbin/slappasswd -s ${olc_root_pw_tmp}`
+
+    # Start slapd listening only on socket.
+    comanage_ldap_utils::start_slapd_socket
+
+    # Set the olcRootPW for the default mdb database to a random
+    cat <<EOF > /tmp/modify.ldif
+dn: olcDatabase={1}mdb,cn=config
+changetype: modify
+replace: olcRootPW
+olcRootPW: ${olc_root_pw_tmp_hash}
+-
+replace: olcAccess
+olcAccess: {0}to * by * none
+EOF
+
+    ldapmodify -Y EXTERNAL -H ldapi:/// -f /tmp/modify.ldif > /dev/null 2>&1
+
+    rm -f /tmp/modify.ldif > /dev/null 2>&1
+
+    # Load the back_ldap module.
+    cat <<EOF > /tmp/modify.ldif
+dn: cn=module{0},cn=config
+changetype: modify
+add: olcModuleLoad
+olcModuleLoad: back_ldap
+EOF
+
+    ldapmodify -Y EXTERNAL -H ldapi:/// -f /tmp/modify.ldif > /dev/null 2>&1
+
+    rm -f /tmp/modify.ldif > /dev/null 2>&1
+
+    # Enable the ldap backend.
+cat <<EOF > /tmp/modify.ldif
+dn: olcBackend={1}ldap,cn=config
+objectClass: olcBackendConfig
+olcBackend: ldap
+EOF
+
+    ldapmodify -Y EXTERNAL -H ldapi:/// -f /tmp/modify.ldif > /dev/null 2>&1
+
+    rm -f /tmp/modify.ldif > /dev/null 2>&1
+    
+    # Stop slapd.
+    comanage_ldap_utils::stop_slapd_socket
+}
+
+##########################################
 # Configure TLS if necessary files exist.
 # Globals:
 #   None
@@ -337,6 +398,22 @@ function comanage_ldap_utils::copy_cert_and_secrets() {
 }
 
 ##########################################
+# Create LDAP backends (proxies)
+# Globals:
+#   SLAPD_LDAP_PROXY_CONFIG_LDIF
+# Arguments:
+#   None
+# Returns:
+#   None
+##########################################
+function comanage_ldap_utils::create_ldap_proxy_backends() {
+    if [ -e "${SLAPD_LDAP_PROXY_CONFIG_LDIF}" ]; then
+        ldapmodify -Y EXTERNAL -H ldapi:/// -a \
+            -f ${SLAPD_LDAP_PROXY_CONFIG_LDIF} > /dev/null 2>&1
+    fi
+}
+
+##########################################
 # Exec this script to become slapd
 # Globals:
 #   None
@@ -362,6 +439,45 @@ function comanage_ldap_utils::exec_slapd() {
 
     # Configure TLS.
     comanage_ldap_utils::configure_tls
+
+    # Stop slapd listening on UNIX socket.
+    comanage_ldap_utils::stop_slapd_socket
+
+    # Always set user and group in case external source of user and
+    # group mappings to numeric UID and GID is being used, such as
+    # COPY in of /etc/passwd.
+    chown -R openldap:openldap /var/lib/ldap
+    chown -R openldap:openldap /etc/ldap/slapd.d
+
+    exec "$@"
+}
+
+##########################################
+# Exec this script to become slapd proxy
+# Globals:
+#   None
+# Arguments:
+#   Command and arguments to exec
+# Returns:
+#   Does not return
+##########################################
+function comanage_ldap_utils::exec_slapd_proxy() {
+    comanage_ldap_utils::copy_cert_and_secrets
+
+    # Bootstrap the directory.
+    comanage_ldap_utils::bootstrap_proxy
+
+    # Start slapd listening only on UNIX socket.
+    comanage_ldap_utils::start_slapd_socket
+
+    # Add extra schemas not included with Debian OpenLDAP.
+    comanage_ldap_utils::add_schemas
+
+    # Configure TLS.
+    comanage_ldap_utils::configure_tls
+
+    # Create LDAP (proxy) backends.
+    comanage_ldap_utils::create_ldap_proxy_backends
 
     # Stop slapd listening on UNIX socket.
     comanage_ldap_utils::stop_slapd_socket
