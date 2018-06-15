@@ -372,6 +372,8 @@ EOF
 #   SLAPD_CERT_FILE
 #   SLAPD_PRIVKEY_FILE
 #   SLAPD_CHAIN_FILE
+#   OLC_ROOT_DN_PASSWORD
+#   OLC_ROOT_DN_PASSWORD_FILE
 #   OLC_ROOT_PW_FILE
 #   OLC_ROOT_PW
 # Arguments:
@@ -394,6 +396,10 @@ function comanage_ldap_utils::copy_cert_and_secrets() {
 
     if [[ -f "${OLC_ROOT_PW_FILE}" ]]; then
         OLC_ROOT_PW=`cat ${OLC_ROOT_PW_FILE}`
+    fi
+
+    if [[ -f "${OLC_ROOT_DN_PASSWORD_FILE}" ]]; then
+        OLC_ROOT_DN_PASSWORD=`cat ${OLC_ROOT_DN_PASSWORD_FILE}`
     fi
 }
 
@@ -439,6 +445,9 @@ function comanage_ldap_utils::exec_slapd() {
 
     # Configure TLS.
     comanage_ldap_utils::configure_tls
+
+    # Process input LDIF.
+    comanage_ldap_utils::process_ldif
 
     # Stop slapd listening on UNIX socket.
     comanage_ldap_utils::stop_slapd_socket
@@ -489,6 +498,31 @@ function comanage_ldap_utils::exec_slapd_proxy() {
     chown -R openldap:openldap /etc/ldap/slapd.d
 
     exec "$@"
+}
+
+##########################################
+# Process LDIF.
+# Globals:
+#   CN_ADMIN_LDIF
+#   CN_CONFIG_LDIF
+#   OLC_ROOT_DN_PASSWORD
+# Arguments:
+#   None
+# Returns:
+#   None
+##########################################
+function comanage_ldap_utils::process_ldif() {
+    if [[ -f "${CN_ADMIN_LDIF}" && \
+        ! -n "${OLC_ROOT_DN_PASSWORD}" ]]; then
+        ldapmodify -c -H ldapi:/// -D "${OLC_ROOT_DN}" -x \
+            -w "${OLC_ROOT_DN_PASSWORD}" \
+            -f "${CN_ADMIN_LDIF}" > /dev/null 2>&1
+    fi
+
+    if [[ -f "${CN_CONFIG_LDIF}" ]]; then
+        ldapmodify -c -Y EXTERNAL -H ldapi:/// \
+            -f "${CN_CONFIG_LDIF}" > /dev/null 2>&1
+    fi
 }
 
 ##########################################
