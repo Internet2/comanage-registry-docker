@@ -34,6 +34,9 @@ ENV OLC_SUFFIX ${OLC_SUFFIX:-dc=my,dc=org}
 ENV OLC_ROOT_DN ${OLC_ROOT_DN:-cn=admin,dc=my,dc=org}
 ENV OLC_ROOT_PW ${OLC_ROOT_PW:-password}
 
+RUN mkdir /schema
+
+COPY edumember.ldif /etc/ldap/schema/
 COPY eduperson.ldif /etc/ldap/schema/
 COPY openssh-lpk.ldif /etc/ldap/schema/
 COPY voperson.ldif /etc/ldap/schema/

@@ -19,9 +19,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-ADDED_SCHEMAS="eduperson openssh-lpk voperson"
-SCHEMA_DIR="/etc/ldap/schema"
-
 ##########################################
 # Add a hyphen to an LDIF file to indicate multiple ldapmodify entries.
 # Globals:
@@ -39,23 +36,46 @@ function comanage_ldap_utils::add_hyphen() {
 }
 
 ##########################################
-# Add additional schemas if necessary.
+# Add additional schemas if not already defined.
 # Globals:
-#   ADDED_SCHEMAS
-#   SCHEMA_DIR
+#   None
 # Arguments:
 #   None
 # Returns:
 #   None
 ##########################################
 function comanage_ldap_utils::add_schemas() {
+    # Array of schema files to be considered.
+    declare -a schema_files=()
+
+    # Schema required by COmanage.
+    local comanage_required="edumember eduperson openssh-lpk voperson"
+    local schema_dir="/etc/ldap/schema"
     local schema_name
-    for schema_name in ${ADDED_SCHEMAS}; do
-        if ! comanage_ldap_utils::schema_installed $schema_name && 
-            comanage_ldap_utils::schema_defined $schema_name; then
+    for schema_name in ${comanage_required}; do
+        schema_files+=("${schema_dir}/${schema_name}.ldif")
+    done
+
+    # Schema injected at deployment time.
+    schema_dir="/schema"
+    local file_name
+    for file_name in `ls -1 /schema`; do
+        schema_files+=("${schema_dir}/${file_name}")
+    done
+
+    # Loop over all schema files.
+    for file_name in "${schema_files[@]}"; do
+
+        # Parse schema name from the LDIF file.
+        schema_name=`head -n 1 ${file_name} |
+            sed 's/dn: cn=\(.\+\),cn=schema,cn=config/\1/'`
+
+        # If schema is not already installed add it.
+        if ! comanage_ldap_utils::schema_installed ${schema_name}; then
                 ldapmodify -Y EXTERNAL -H ldapi:/// -a \
-                    -f "$SCHEMA_DIR/$schema_name.ldif"  > /dev/null 2>&1
+                    -f "${file_name}"  > /dev/null 2>&1
         fi
+
     done
 }
 
@@ -557,21 +577,6 @@ function comanage_ldap_utils::schema_installed() {
     ldapsearch -LLL -Y EXTERNAL -H ldapi:/// \
         -b cn=schema,cn=config $filter dn 2>/dev/null \
         | grep $schema_name > /dev/null 2>&1
-}
-
-##########################################
-# Determine if a schema is defined.
-# Globals:
-#   None
-# Arguments:
-#   schema name
-# Returns:
-#   None
-##########################################
-function comanage_ldap_utils::schema_defined() {
-    local schema_name="$1"
-
-    [[ -e "$SCHEMA_DIR/$schema_name.ldif" ]]
 }
 
 ##########################################
