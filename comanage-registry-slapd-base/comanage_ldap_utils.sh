@@ -57,17 +57,16 @@ function comanage_ldap_utils::add_schemas() {
     done
 
     # Schema injected at deployment time.
-    schema_dir="/schema"
     local file_name
-    for file_name in `ls -1 /schema`; do
-        schema_files+=("${schema_dir}/${file_name}")
+    for file_name in /schema/*; do
+        schema_files+=("${file_name}")
     done
 
     # Loop over all schema files.
     for file_name in "${schema_files[@]}"; do
 
         # Parse schema name from the LDIF file.
-        schema_name=`head -n 1 ${file_name} |
+        schema_name=`head -n 1 "${file_name}" |
             sed 's/dn: cn=\(.\+\),cn=schema,cn=config/\1/'`
 
         # If schema is not already installed add it.
@@ -424,25 +423,9 @@ function comanage_ldap_utils::copy_cert_and_secrets() {
 }
 
 ##########################################
-# Create LDAP backends (proxies)
-# Globals:
-#   SLAPD_LDAP_PROXY_CONFIG_LDIF
-# Arguments:
-#   None
-# Returns:
-#   None
-##########################################
-function comanage_ldap_utils::create_ldap_proxy_backends() {
-    if [ -e "${SLAPD_LDAP_PROXY_CONFIG_LDIF}" ]; then
-        ldapmodify -Y EXTERNAL -H ldapi:/// -a \
-            -f ${SLAPD_LDAP_PROXY_CONFIG_LDIF} > /dev/null 2>&1
-    fi
-}
-
-##########################################
 # Exec this script to become slapd
 # Globals:
-#   None
+#   LDAP_BOOTSTRAP
 # Arguments:
 #   Command and arguments to exec
 # Returns:
@@ -454,6 +437,8 @@ function comanage_ldap_utils::exec_slapd() {
     # Only bootstrap the directory if it does not already exist.
     if [[ ! -f /var/lib/ldap/data.mdb && \
         ! -f /etc/ldap/slapd.d/cn=config.ldif ]]; then
+        # Set flag that we are bootstrapping the directory.
+        LDAP_BOOTSTRAP=1
         comanage_ldap_utils::bootstrap
     fi
 
@@ -493,6 +478,10 @@ function comanage_ldap_utils::exec_slapd() {
 function comanage_ldap_utils::exec_slapd_proxy() {
     comanage_ldap_utils::copy_cert_and_secrets
 
+    # Set flag that we are bootstrapping the directory. The proxy deployment
+    # using ldap backend saves no state so every boot is a bootstrap.
+    LDAP_BOOTSTRAP=1
+
     # Bootstrap the directory.
     comanage_ldap_utils::bootstrap_proxy
 
@@ -505,8 +494,8 @@ function comanage_ldap_utils::exec_slapd_proxy() {
     # Configure TLS.
     comanage_ldap_utils::configure_tls
 
-    # Create LDAP (proxy) backends.
-    comanage_ldap_utils::create_ldap_proxy_backends
+    # Process input LDIF.
+    comanage_ldap_utils::process_ldif
 
     # Stop slapd listening on UNIX socket.
     comanage_ldap_utils::stop_slapd_socket
@@ -521,28 +510,65 @@ function comanage_ldap_utils::exec_slapd_proxy() {
 }
 
 ##########################################
+# Loop ldapmodify over a set of LDIF files.
+# Globals:
+#   OLC_ROOT_DN
+#   OLC_ROOT_DN_PASSWORD
+# Arguments:
+#   Set of LDIF files
+#   String "admin" or "config"
+# Returns:
+#   None
+##########################################
+function comanage_ldap_utils::loop_ldapmodify() {
+    local auth
+    local ldif
+
+    if [[ "$1" == "config" ]]; then
+        auth="-Y EXTERNAL"
+    elif [[ "$1" == "admin" && -n "${OLC_ROOT_DN}" && \
+        -n "${OLC_ROOT_DN_PASSWORD}" ]]; then
+        auth="-D ${OLC_ROOT_DN} -x -w ${OLC_ROOT_DN_PASSWORD}"
+    else
+        return 0
+    fi
+
+    shift 1
+
+    for ldif in "$@"; do
+        [[ -f "${ldif}" ]] || continue
+        ldapmodify -c ${auth} -H ldapi:/// -f "${ldif}" > /dev/null 2>&1
+    done
+}
+
+##########################################
 # Process LDIF.
 # Globals:
-#   CN_ADMIN_LDIF
-#   CN_CONFIG_LDIF
-#   OLC_ROOT_DN_PASSWORD
+#   LDAP_BOOTSTRAP
 # Arguments:
 #   None
 # Returns:
 #   None
 ##########################################
 function comanage_ldap_utils::process_ldif() {
-    if [[ -f "${CN_ADMIN_LDIF}" && \
-        ! -n "${OLC_ROOT_DN_PASSWORD}" ]]; then
-        ldapmodify -c -H ldapi:/// -D "${OLC_ROOT_DN}" -x \
-            -w "${OLC_ROOT_DN_PASSWORD}" \
-            -f "${CN_ADMIN_LDIF}" > /dev/null 2>&1
+    local ldif_files
+    local ldif
+
+    # Only process files in ../first during bootstrap.
+    if [[ -n "${LDAP_BOOTSTRAP}" ]]; then
+        ldif_files=/ldif/config/first/*.ldif
+        comanage_ldap_utils::loop_ldapmodify "config" ${ldif_files}
+
+        ldif_files=/ldif/admin/first/*.ldif
+        comanage_ldap_utils::loop_ldapmodify "admin" ${ldif_files}
     fi
 
-    if [[ -f "${CN_CONFIG_LDIF}" ]]; then
-        ldapmodify -c -Y EXTERNAL -H ldapi:/// \
-            -f "${CN_CONFIG_LDIF}" > /dev/null 2>&1
-    fi
+    # Process files at each startup.
+    ldif_files=/ldif/config/*.ldif
+    comanage_ldap_utils::loop_ldapmodify "config" ${ldif_files}
+
+    ldif_files=/ldif/admin/*.ldif
+    comanage_ldap_utils::loop_ldapmodify "admin" ${ldif_files}
 }
 
 ##########################################
@@ -550,7 +576,7 @@ function comanage_ldap_utils::process_ldif() {
 # Globals:
 #   None
 # Arguments:
-#   None
+#   TLS attribute name
 # Returns:
 #   None
 ##########################################
