@@ -510,7 +510,9 @@ function comanage_ldap_utils::exec_slapd_proxy() {
 }
 
 ##########################################
-# Loop ldapmodify over a set of LDIF files.
+# Loop ldapmodify over a set of LDIF files with environment variable 
+# substitutions.
+#
 # Globals:
 #   OLC_ROOT_DN
 #   OLC_ROOT_DN_PASSWORD
@@ -523,6 +525,9 @@ function comanage_ldap_utils::exec_slapd_proxy() {
 function comanage_ldap_utils::loop_ldapmodify() {
     local auth
     local ldif
+    local newldif
+    local replacement
+    local substitutions
 
     if [[ "$1" == "config" ]]; then
         auth="-Y EXTERNAL"
@@ -537,7 +542,32 @@ function comanage_ldap_utils::loop_ldapmodify() {
 
     for ldif in "$@"; do
         [[ -f "${ldif}" ]] || continue
-        ldapmodify -c ${auth} -H ldapi:/// -f "${ldif}" > /dev/null 2>&1
+
+        # Copy LDIF file to temporary copy.
+        newldif="/tmp/${ldif##*/}"
+        cp "${ldif}" "${newldif}"
+
+        # Find any substitutions that need to be made.
+        substitutions=( `grep -oE '%%.+%%' "${newldif}" | tr -d %` )
+
+        # Loop over the substitutions and use sed in place to make the
+        # substitutions.
+        for s in "${substitutions[@]}"; do
+            # If the substitution ends in _FILE then use the text from
+            # the file pointed to by that environment variable. Otherwise
+            # use the text from the environment variable itself.
+            if [[ ! "${s%_FILE}" == "${s}" ]]; then
+                replacement=`cat "${!s}"`
+            else
+                replacement=${!s}
+            fi
+
+            sed -i s@%%"${s}"%%@"${replacement}"@g "${newldif}"
+        done
+
+        ldapmodify -c ${auth} -H ldapi:/// -f "${newldif}" > /dev/null 2>&1
+
+        rm -f "${newldif}" > /dev/null 2>&1
     done
 }
 
