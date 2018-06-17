@@ -19,6 +19,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+if [[ -n "${LDAP_DEBUG}" ]]; then
+    OUTPUT=/dev/stdout
+    set -x
+else
+    OUTPUT=/dev/null
+fi
+
 ##########################################
 # Add a hyphen to an LDIF file to indicate multiple ldapmodify entries.
 # Globals:
@@ -72,7 +79,7 @@ function comanage_ldap_utils::add_schemas() {
         # If schema is not already installed add it.
         if ! comanage_ldap_utils::schema_installed ${schema_name}; then
                 ldapmodify -Y EXTERNAL -H ldapi:/// -a \
-                    -f "${file_name}"  > /dev/null 2>&1
+                    -f "${file_name}"  > "${OUTPUT}" 2>&1
         fi
 
     done
@@ -132,9 +139,9 @@ replace: olcDbDirectory
 olcDbDirectory: /var/lib/ldap.dist
 EOF
 
-    ldapmodify -Y EXTERNAL -H ldapi:/// -f /tmp/modify.ldif > /dev/null 2>&1 
+    ldapmodify -Y EXTERNAL -H ldapi:/// -f /tmp/modify.ldif > "${OUTPUT}" 2>&1 
 
-    rm -f /tmp/modify.ldif > /dev/null 2>&1
+    rm -f /tmp/modify.ldif > "${OUTPUT}" 2>&1
 
     # Kill slapd and remove the directory created by the Debian installation
     # that was copied over and used to allow slapd to start initially.
@@ -152,9 +159,9 @@ add: olcModuleLoad
 olcModuleLoad: syncprov
 EOF
 
-    ldapmodify -Y EXTERNAL -H ldapi:/// -f /tmp/modify.ldif > /dev/null 2>&1
+    ldapmodify -Y EXTERNAL -H ldapi:/// -f /tmp/modify.ldif > "${OUTPUT}" 2>&1
 
-    rm -f /tmp/modify.ldif > /dev/null 2>&1
+    rm -f /tmp/modify.ldif > "${OUTPUT}" 2>&1
     
     # Configure the directory with the injected suffix but the temporary
     # password.
@@ -181,9 +188,10 @@ olcDbIndex: entryUUID eq
 olcDbMaxSize: 1073741824
 EOF
 
-    ldapmodify -Y EXTERNAL -H ldapi:/// -a -f /tmp/modify.ldif > /dev/null 2>&1
+    ldapmodify -Y EXTERNAL -H ldapi:/// -a \
+        -f /tmp/modify.ldif > "${OUTPUT}" 2>&1
 
-    rm -f /tmp/modify.ldif > /dev/null 2>&1
+    rm -f /tmp/modify.ldif > "${OUTPUT}" 2>&1
 
     # Configure slapd to use a better password hash.
     cat <<EOF > /tmp/modify.ldif
@@ -196,9 +204,9 @@ add: olcPasswordHash
 olcPasswordHash: {CRYPT}
 EOF
 
-    ldapmodify -Y EXTERNAL -H ldapi:/// -f /tmp/modify.ldif > /dev/null 2>&1
+    ldapmodify -Y EXTERNAL -H ldapi:/// -f /tmp/modify.ldif > "${OUTPUT}" 2>&1
 
-    rm -f /tmp/modify.ldif > /dev/null 2>&1
+    rm -f /tmp/modify.ldif > "${OUTPUT}" 2>&1
 
     # Create the actual contents of the directory and the admin DN
     # with the injected password hash.
@@ -218,9 +226,9 @@ userPassword: ${root_pw}
 EOF
 
     ldapmodify -x -D ${root_dn} -w ${olc_root_pw_tmp} -H ldapi:/// -a \
-        -f /tmp/modify.ldif > /dev/null 2>&1
+        -f /tmp/modify.ldif > "${OUTPUT}" 2>&1
 
-    rm -f /tmp/modify.ldif > /dev/null 2>&1
+    rm -f /tmp/modify.ldif > "${OUTPUT}" 2>&1
 
     # Remove the temporary root password from the directory configuration.
     cat <<EOF > /tmp/modify.ldif
@@ -229,9 +237,9 @@ changetype: modify
 delete: olcRootPW
 EOF
 
-    ldapmodify -Y EXTERNAL -H ldapi:/// -f /tmp/modify.ldif > /dev/null 2>&1
+    ldapmodify -Y EXTERNAL -H ldapi:/// -f /tmp/modify.ldif > "${OUTPUT}" 2>&1
 
-    rm -f /tmp/modify.ldif > /dev/null 2>&1
+    rm -f /tmp/modify.ldif > "${OUTPUT}" 2>&1
 
     # Add the syncprov overlay.
     cat <<EOF > /tmp/modify.ldif
@@ -242,9 +250,9 @@ olcOverlay: syncprov
 olcSpCheckpoint: 10 1
 EOF
 
-    ldapmodify -Y EXTERNAL -H ldapi:/// -f /tmp/modify.ldif > /dev/null 2>&1
+    ldapmodify -Y EXTERNAL -H ldapi:/// -f /tmp/modify.ldif > "${OUTPUT}" 2>&1
 
-    rm -f /tmp/modify.ldif > /dev/null 2>&1
+    rm -f /tmp/modify.ldif > "${OUTPUT}" 2>&1
 
     # Stop slapd.
     comanage_ldap_utils::stop_slapd_socket
@@ -280,9 +288,9 @@ replace: olcAccess
 olcAccess: {0}to * by * none
 EOF
 
-    ldapmodify -Y EXTERNAL -H ldapi:/// -f /tmp/modify.ldif > /dev/null 2>&1
+    ldapmodify -Y EXTERNAL -H ldapi:/// -f /tmp/modify.ldif > "${OUTPUT}" 2>&1
 
-    rm -f /tmp/modify.ldif > /dev/null 2>&1
+    rm -f /tmp/modify.ldif > "${OUTPUT}" 2>&1
 
     # Load the back_ldap module.
     cat <<EOF > /tmp/modify.ldif
@@ -292,9 +300,9 @@ add: olcModuleLoad
 olcModuleLoad: back_ldap
 EOF
 
-    ldapmodify -Y EXTERNAL -H ldapi:/// -f /tmp/modify.ldif > /dev/null 2>&1
+    ldapmodify -Y EXTERNAL -H ldapi:/// -f /tmp/modify.ldif > "${OUTPUT}" 2>&1
 
-    rm -f /tmp/modify.ldif > /dev/null 2>&1
+    rm -f /tmp/modify.ldif > "${OUTPUT}" 2>&1
 
     # Enable the ldap backend.
 cat <<EOF > /tmp/modify.ldif
@@ -303,9 +311,9 @@ objectClass: olcBackendConfig
 olcBackend: ldap
 EOF
 
-    ldapmodify -Y EXTERNAL -H ldapi:/// -f /tmp/modify.ldif > /dev/null 2>&1
+    ldapmodify -Y EXTERNAL -H ldapi:/// -f /tmp/modify.ldif > "${OUTPUT}" 2>&1
 
-    rm -f /tmp/modify.ldif > /dev/null 2>&1
+    rm -f /tmp/modify.ldif > "${OUTPUT}" 2>&1
     
     # Stop slapd.
     comanage_ldap_utils::stop_slapd_socket
@@ -377,9 +385,9 @@ changetype: modify
 EOF
             cat $ldif >> /tmp/modify.ldif
             ldapmodify -Y EXTERNAL -H ldapi:/// -c \
-                -f /tmp/modify.ldif > /dev/null 2>&1
-            rm -f /tmp/modify.ldif > /dev/null 2>&1
-            rm -f $ldif > /dev/null 2>&1
+                -f /tmp/modify.ldif > "${OUTPUT}" 2>&1
+            rm -f /tmp/modify.ldif > "${OUTPUT}" 2>&1
+            rm -f $ldif > "${OUTPUT}" 2>&1
 
         fi
     fi
@@ -565,9 +573,9 @@ function comanage_ldap_utils::loop_ldapmodify() {
             sed -i s@%%"${s}"%%@"${replacement}"@g "${newldif}"
         done
 
-        ldapmodify -c ${auth} -H ldapi:/// -f "${newldif}" > /dev/null 2>&1
+        ldapmodify -c ${auth} -H ldapi:/// -f "${newldif}" > "${OUTPUT}" 2>&1
 
-        rm -f "${newldif}" > /dev/null 2>&1
+        rm -f "${newldif}" > "${OUTPUT}" 2>&1
     done
 }
 
@@ -613,8 +621,8 @@ function comanage_ldap_utils::process_ldif() {
 function comanage_ldap_utils::tls_attribute_exists() {
     local attribute="$1"
     ldapsearch -LLL -Y EXTERNAL -H ldapi:/// \
-        -b cn=config -s base $attribute 2>/dev/null \
-        | grep $attribute > /dev/null 2>&1
+        -b cn=config -s base $attribute 2>"${OUTPUT}" \
+        | grep $attribute > "${OUTPUT}" 2>&1
 }
 
 ##########################################
@@ -631,8 +639,8 @@ function comanage_ldap_utils::schema_installed() {
     local filter="(&(cn={*}$schema_name)(objectClass=olcSchemaConfig))"
 
     ldapsearch -LLL -Y EXTERNAL -H ldapi:/// \
-        -b cn=schema,cn=config $filter dn 2>/dev/null \
-        | grep $schema_name > /dev/null 2>&1
+        -b cn=schema,cn=config $filter dn 2>"${OUTPUT}" \
+        | grep $schema_name > "${OUTPUT}" 2>&1
 }
 
 ##########################################
@@ -645,7 +653,7 @@ function comanage_ldap_utils::schema_installed() {
 #   None
 ##########################################
 function comanage_ldap_utils::start_slapd_socket() {
-    slapd -h ldapi:/// -u openldap -g openldap > /dev/null 2>&1
+    slapd -h ldapi:/// -u openldap -g openldap > "${OUTPUT}" 2>&1
 }
 
 ##########################################
