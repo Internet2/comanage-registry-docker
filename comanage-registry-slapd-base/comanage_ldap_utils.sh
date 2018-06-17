@@ -307,6 +307,7 @@ EOF
     # Enable the ldap backend.
 cat <<EOF > /tmp/modify.ldif
 dn: olcBackend={1}ldap,cn=config
+changetype: add
 objectClass: olcBackendConfig
 olcBackend: ldap
 EOF
