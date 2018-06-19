@@ -71,6 +71,7 @@ function comanage_ldap_utils::add_schemas() {
 
     # Loop over all schema files.
     for file_name in "${schema_files[@]}"; do
+        [[ -f "${file_name}" ]] || continue
 
         # Parse schema name from the LDIF file.
         schema_name=`head -n 1 "${file_name}" |
@@ -574,7 +575,8 @@ function comanage_ldap_utils::loop_ldapmodify() {
             sed -i s@%%"${s}"%%@"${replacement}"@g "${newldif}"
         done
 
-        ldapmodify -c ${auth} -H ldapi:/// -f "${newldif}" > "${OUTPUT}" 2>&1
+        ldapmodify -c ${auth} -H ldapi:/// \
+            -f "${newldif}" > "${OUTPUT}" 2>&1 || true
 
         rm -f "${newldif}" > "${OUTPUT}" 2>&1
     done
