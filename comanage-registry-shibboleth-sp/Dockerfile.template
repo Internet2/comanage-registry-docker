@@ -38,7 +38,7 @@ RUN apt-get update \
             make \
             wget 
 
-ARG LOG4SHIB_URL=http://shibboleth.net/downloads/log4shib/latest/log4shib-1.0.9.tar.gz
+ARG LOG4SHIB_URL=http://shibboleth.net/downloads/log4shib/1.0.9/log4shib-1.0.9.tar.gz
 
 RUN wget -O log4shib.tar.gz "${LOG4SHIB_URL}" \
       && mkdir -p src \
@@ -84,7 +84,7 @@ RUN wget -O xmlsecc.tar.gz "${XMLSECC_URL}" \
       && cd .. \
       && rm -r src 
 
-ARG XMLTOOLING_URL=http://shibboleth.net/downloads/c++-opensaml/latest/xmltooling-1.6.4.tar.gz
+ARG XMLTOOLING_URL=http://shibboleth.net/downloads/c++-opensaml/2.6.1/xmltooling-1.6.4.tar.gz
 
 RUN wget -O xmltooling.tar.gz "${XMLTOOLING_URL}" \
       && mkdir -p src \
@@ -99,7 +99,7 @@ RUN wget -O xmltooling.tar.gz "${XMLTOOLING_URL}" \
       && cd .. \
       && rm -r src 
 
-ARG OPENSAMLC_URL=http://shibboleth.net/downloads/c++-opensaml/latest/opensaml-2.6.1.tar.gz
+ARG OPENSAMLC_URL=http://shibboleth.net/downloads/c++-opensaml/2.6.1/opensaml-2.6.1.tar.gz
 
 RUN wget -O opensamlc.tar.gz "${OPENSAMLC_URL}" \
       && mkdir -p src \
@@ -114,7 +114,7 @@ RUN wget -O opensamlc.tar.gz "${OPENSAMLC_URL}" \
       && cd .. \
       && rm -r src 
 
-ARG SHIBBOLETH_SP_URL=http://shibboleth.net/downloads/service-provider/latest/shibboleth-sp-2.6.1.tar.gz
+ARG SHIBBOLETH_SP_URL=http://shibboleth.net/downloads/service-provider/2.6.1/shibboleth-sp-2.6.1.tar.gz
 
 RUN wget -O shibboleth-sp.tar.gz "${SHIBBOLETH_SP_URL}" \
       && mkdir -p src \
