@@ -118,6 +118,13 @@ function comanage_ldap_utils::bootstrap() {
         fold -w 32 | head -n 1`
     local olc_root_pw_tmp_hash=`/usr/sbin/slappasswd -s ${olc_root_pw_tmp}`
 
+    # Ensure that the distribution files created by Debian installation of
+    # slapd have the correct ownership and group membership for the openldap
+    # user that is running since a deployer may have changed them by
+    # injecting their own /etc/passwd.
+    chown -R openldap:openldap /var/lib/ldap.dist
+    chown -R openldap:openldap /etc/ldap/slapd.d.dist
+
     # Copy over the distribution files created by Debian installation of slapd
     # so that we can start slapd.
     mkdir -p /var/lib/ldap
@@ -472,6 +479,7 @@ function comanage_ldap_utils::exec_slapd() {
     # COPY in of /etc/passwd.
     chown -R openldap:openldap /var/lib/ldap
     chown -R openldap:openldap /etc/ldap/slapd.d
+    chown openldap:openldap /var/run/slapd
 
     exec "$@"
 }
@@ -656,6 +664,7 @@ function comanage_ldap_utils::schema_installed() {
 #   None
 ##########################################
 function comanage_ldap_utils::start_slapd_socket() {
+    chown openldap:openldap /var/run/slapd
     slapd -h ldapi:/// -u openldap -g openldap > "${OUTPUT}" 2>&1
 }
 
