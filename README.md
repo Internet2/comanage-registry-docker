@@ -80,7 +80,7 @@ services:
         image: comanage-registry-postgres
 
     comanage-registry:
-        image: comanage-registry:3.0.0-basic-auth
+        image: comanage-registry:3.1.0-basic-auth
         ports:
             - "80:80"
             - "443:443"
