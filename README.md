@@ -52,7 +52,7 @@ cd comanage-registry-docker
 * Define `COMANAGE_REGISTRY_VERSION`. Currently we recommend
 
 ```
-export COMANAGE_REGISTRY_VERSION=3.0.0
+export COMANAGE_REGISTRY_VERSION=3.1.0
 ```
 
 * Build a local image for COmanage Registry:
