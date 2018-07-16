@@ -25,7 +25,7 @@ limitations under the License.
 * Define `COMANAGE_REGISTRY_VERSION`. Currently we recommend
 
 ```
-export COMANAGE_REGISTRY_VERSION=hotfix-2.0.x
+export COMANAGE_REGISTRY_VERSION=3.1.0
 ```
 
 * Build a local image for COmanage Registry if you have not already:
@@ -64,7 +64,7 @@ services:
             - /docker/var/lib/postgresql/data:/var/lib/postgresql/data
 
     comanage-registry:
-        image: comanage-registry:hotfix-2.0.x-basic-auth
+        image: comanage-registry:3.1.0-basic-auth
         volumes:
             - /docker/srv/comanage-registry/local:/srv/comanage-registry/local
         ports:
