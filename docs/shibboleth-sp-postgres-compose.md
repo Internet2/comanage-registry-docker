@@ -38,7 +38,7 @@ docker-compose version 1.13.0, build 1719ceb
 * Define `COMANAGE_REGISTRY_VERSION`. Currently we recommend
 
 ```
-export COMANAGE_REGISTRY_VERSION=hotfix-2.0.x
+export COMANAGE_REGISTRY_VERSION=3.1.0
 ```
 
 * Build a local image for COmanage Registry if you have not already (building the
@@ -183,7 +183,7 @@ services:
             - "389:389"
 
     comanage-registry:
-        image: comanage-registry:hotfix-2.0.x-shibboleth-sp
+        image: comanage-registry:3.1.0-shibboleth-sp
         volumes:
             - /docker/srv/comanage-registry/local:/srv/comanage-registry/local
             - /docker/run/secrets:/run/secrets
