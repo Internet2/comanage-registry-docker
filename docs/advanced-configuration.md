@@ -217,7 +217,7 @@ services:
             - MYSQL_PASSWORD_FILE=/run/secrets/mysql_password
 
     comanage-registry:
-        image: comanage-registry:hotfix-2.0.x-basic-auth
+        image: comanage-registry:3.1.1-basic-auth
         environment:
             - COMANAGE_REGISTRY_DATASOURCE=Database/Mysql
             - COMANAGE_REGISTRY_DATABASE_USER_PASSWORD_FILE=/run/secrets/mysql_password
@@ -281,7 +281,7 @@ services:
             - "389:389"
 
     comanage-registry:
-        image: comanage-registry:hotfix-2.0.x-basic-auth
+        image: comanage-registry:3.1.1-basic-auth
         environment:
             - COMANAGE_REGISTRY_DATASOURCE=Database/Mysql
             - COMANAGE_REGISTRY_DATABASE_USER_PASSWORD_FILE=/run/secrets/mysql_password
@@ -316,7 +316,7 @@ services:
             - MYSQL_PASSWORD_FILE=/run/secrets/mysql_password
 
     comanage-registry:
-        image: comanage-registry:hotfix-2.0.x-basic-auth
+        image: comanage-registry:3.1.1-basic-auth
         environment:
             - COMANAGE_REGISTRY_DATASOURCE=Database/Mysql
             - COMANAGE_REGISTRY_DATABASE_USER_PASSWORD_FILE=/run/secrets/mysql_password

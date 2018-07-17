@@ -35,10 +35,15 @@ docker-compose version 1.13.0, build 1719ceb
 
 ## Recipe
 
-* Define `COMANAGE_REGISTRY_VERSION`. Currently we recommend
+* Define the shell variable `COMANAGE_REGISTRY_VERSION` to be the version
+of COmanage Registry you want to deploy. See the
+[COmanage Registry Release History](https://spaces.internet2.edu/display/COmanage/Release+History)
+wiki page for the list of releases. We recommend using the latest release.
+
+Here is an example (but please check the wiki page for the latest release number):
 
 ```
-export COMANAGE_REGISTRY_VERSION=3.1.0
+export COMANAGE_REGISTRY_VERSION=3.1.1
 ```
 
 * Build a local image for COmanage Registry if you have not already (building the
@@ -149,7 +154,7 @@ echo '<!--<MetadataProvider type="XML" file="partner-metadata.xml"/>-->' \
     > /docker/run/secrets/shibboleth_sp_metadata_provider_xml
 ```
 
-* Create a docker-compose.yml by adjusting the example below:
+* Create a template docker-compose.yml by adjusting the example below:
 
 ```
 version: '3.1'
@@ -183,7 +188,7 @@ services:
             - "389:389"
 
     comanage-registry:
-        image: comanage-registry:3.1.0-shibboleth-sp
+        image: comanage-registry:COMANAGE_REGISTRY_VERSION-shibboleth-sp
         volumes:
             - /docker/srv/comanage-registry/local:/srv/comanage-registry/local
             - /docker/run/secrets:/run/secrets
@@ -210,6 +215,13 @@ This is the value that the Shibboleth SP expects to consume in a SAML
 assertion from the IdP that authenticates the first platform administrator.
 By default the Shibboleth SP will expect to consume that identifier
 from the eduPersonPrincipalName attribute asserted for the admin by the IdP.
+
+* Use sed to set the COmanage Registry version for the image in the 
+docker-compose.yml file:
+
+```
+sed -i s/COMANAGE_REGISTRY_VERSION/$COMANAGE_REGISTRY_VERSION/ docker-compose.yml
+```
 
 Bring up the services using docker-compose:
 

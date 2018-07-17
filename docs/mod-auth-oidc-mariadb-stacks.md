@@ -29,10 +29,15 @@ This recipe uses Docker service stacks, swarm, and secrets rather than docker-co
 
 ## Recipe
 
-* Define `COMANAGE_REGISTRY_VERSION`. Currently we recommend
+* Define the shell variable `COMANAGE_REGISTRY_VERSION` to be the version
+of COmanage Registry you want to deploy. See the
+[COmanage Registry Release History](https://spaces.internet2.edu/display/COmanage/Release+History)
+wiki page for the list of releases. We recommend using the latest release.
+
+Here is an example (but please check the wiki page for the latest release number):
 
 ```
-export COMANAGE_REGISTRY_VERSION=hotfix-2.0.x
+export COMANAGE_REGISTRY_VERSION=3.1.1
 ```
 
 * Build a local image for COmanage Registry if you have not already:
@@ -136,7 +141,7 @@ docker secret create https_cert_file fullchain.pem
 docker secret create https_privkey_file privkey.pem
 ```
 
-* Create a docker-compose.yml by adjusting the example below:
+* Create a template docker-compose.yml by adjusting the example below:
 
 ```
 version: '3.1'
@@ -186,7 +191,7 @@ services:
             replicas: 1
 
     comanage-registry:
-        image: comanage-registry:hotfix-2.0.x
+        image: comanage-registry:COMANAGE_REGISTRY_VERSION-mod-auth-openidc
         volumes:
             - /srv/docker/srv/comanage-registry/local:/srv/comanage-registry/local
         environment:
@@ -247,6 +252,13 @@ This is the value that mod\_auth\_openidc expects to consume in the
 ID token from the OP that authenticates the first platform administrator.
 By default mod\_auth\_openidc will expect to consume that identifier
 from the sub claim asserted for the admin by the OP.
+
+* Use sed to set the COmanage Registry version for the image in the 
+docker-compose.yml file:
+
+```
+sed -i s/COMANAGE_REGISTRY_VERSION/$COMANAGE_REGISTRY_VERSION/ docker-compose.yml
+```
 
 Bring up the services using docker stack deploy:
 

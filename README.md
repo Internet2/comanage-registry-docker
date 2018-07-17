@@ -49,10 +49,15 @@ git clone https://github.com/Internet2/comanage-registry-docker.git
 cd comanage-registry-docker
 ```
 
-* Define `COMANAGE_REGISTRY_VERSION`. Currently we recommend
+* Define the shell variable `COMANAGE_REGISTRY_VERSION` to be the version
+of COmanage Registry you want to deploy. See the
+[COmanage Registry Release History](https://spaces.internet2.edu/display/COmanage/Release+History)
+wiki page for the list of releases. We recommend using the latest release.
+
+Here is an example (but please check the wiki page for the latest release number):
 
 ```
-export COMANAGE_REGISTRY_VERSION=3.1.0
+export COMANAGE_REGISTRY_VERSION=3.1.1
 ```
 
 * Build a local image for COmanage Registry:
@@ -70,7 +75,7 @@ pushd comanage-registry-postgres
 docker build -t comanage-registry-postgres .
 popd
 ```
-* Create a docker-compose.yml file:
+* Create a template docker-compose.yml file:
 ```
 version: '3.1'
 
@@ -80,10 +85,17 @@ services:
         image: comanage-registry-postgres
 
     comanage-registry:
-        image: comanage-registry:3.1.0-basic-auth
+        image: comanage-registry:COMANAGE_REGISTRY_VERSION-basic-auth
         ports:
             - "80:80"
             - "443:443"
+```
+
+* Use sed to set the COmanage Registry version for the image in the 
+docker-compose.yml file:
+
+```
+sed -i s/COMANAGE_REGISTRY_VERSION/$COMANAGE_REGISTRY_VERSION/ docker-compose.yml
 ```
 
 * Start the services:

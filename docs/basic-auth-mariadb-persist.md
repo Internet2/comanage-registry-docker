@@ -22,10 +22,15 @@ limitations under the License.
 # COmanage Registry Docker
 ## With Basic Authentication, MariaDB, and persisted data
 
-* Define `COMANAGE_REGISTRY_VERSION`. Currently we recommend
+* Define the shell variable `COMANAGE_REGISTRY_VERSION` to be the version
+of COmanage Registry you want to deploy. See the
+[COmanage Registry Release History](https://spaces.internet2.edu/display/COmanage/Release+History)
+wiki page for the list of releases. We recommend using the latest release.
+
+Here is an example (but please check the wiki page for the latest release number):
 
 ```
-export COMANAGE_REGISTRY_VERSION=hotfix-2.0.x
+export COMANAGE_REGISTRY_VERSION=3.1.1
 ```
 
 * Build a local image for COmanage Registry if you have not already:
@@ -47,7 +52,7 @@ mkdir -p /docker/var/lib/mysql
 mkdir -p /docker/srv/comanage-registry/local
 ```
 
-* Create a docker-compose.yml file. Be sure to replace the password examples
+* Create a docker-compose.yml template file. Be sure to replace the password examples
 below with your own choices.
 ```
 version: '3.1'
@@ -65,7 +70,7 @@ services:
             - MYSQL_PASSWORD=vy4O6XF58gl1fMpf6rRg
 
     comanage-registry:
-        image: comanage-registry:hotfix-2.0.x-basic-auth
+        image: comanage-registry:COMANAGE_REGISTRY_VERSION-basic-auth
         volumes:
             - /docker/srv/comanage-registry/local:/srv/comanage-registry/local
         environment:
@@ -75,6 +80,13 @@ services:
         ports:
             - "80:80"
             - "443:443"
+```
+
+* Use sed to set the COmanage Registry version for the image in the 
+docker-compose.yml file:
+
+```
+sed -i s/COMANAGE_REGISTRY_VERSION/$COMANAGE_REGISTRY_VERSION/ docker-compose.yml
 ```
 
 * Start the services:
