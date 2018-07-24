@@ -420,14 +420,20 @@ EOF
 function comanage_ldap_utils::copy_cert_and_secrets() {
     if [[ -f "${SLAPD_CERT_FILE}" ]]; then
         cp ${SLAPD_CERT_FILE} /etc/ldap/slapd.crt
+        chown openldap:openldap /etc/ldap/slapd.crt
+        chmod 644 /etc/ldap/slapd.crt
     fi
 
     if [[ -f "${SLAPD_PRIVKEY_FILE}" ]]; then
         cp ${SLAPD_PRIVKEY_FILE} /etc/ldap/slapd.key
+        chown openldap:openldap /etc/ldap/slapd.key
+        chmod 600 /etc/ldap/slapd.key
     fi
 
     if [[ -f "${SLAPD_CHAIN_FILE}" ]]; then
         cp ${SLAPD_CHAIN_FILE} /etc/ldap/slapd.ca.crt
+        chown openldap:openldap /etc/ldap/slapd.ca.crt
+        chmod 644 /etc/ldap/slapd.ca.crt
     fi
 
     if [[ -f "${OLC_ROOT_PW_FILE}" ]]; then
