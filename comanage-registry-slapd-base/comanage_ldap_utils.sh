@@ -483,6 +483,8 @@ function comanage_ldap_utils::exec_slapd() {
     # Always set user and group in case external source of user and
     # group mappings to numeric UID and GID is being used, such as
     # COPY in of /etc/passwd.
+    chown -R openldap:openldap /var/lib/ldap.dist
+    chown -R openldap:openldap /etc/ldap/slapd.d.dist
     chown -R openldap:openldap /var/lib/ldap
     chown -R openldap:openldap /etc/ldap/slapd.d
     chown openldap:openldap /var/run/slapd
@@ -527,8 +529,11 @@ function comanage_ldap_utils::exec_slapd_proxy() {
     # Always set user and group in case external source of user and
     # group mappings to numeric UID and GID is being used, such as
     # COPY in of /etc/passwd.
+    chown -R openldap:openldap /var/lib/ldap.dist
+    chown -R openldap:openldap /etc/ldap/slapd.d.dist
     chown -R openldap:openldap /var/lib/ldap
     chown -R openldap:openldap /etc/ldap/slapd.d
+    chown openldap:openldap /var/run/slapd
 
     exec "$@"
 }
@@ -671,6 +676,16 @@ function comanage_ldap_utils::schema_installed() {
 ##########################################
 function comanage_ldap_utils::start_slapd_socket() {
     chown openldap:openldap /var/run/slapd
+
+    # Always set user and group in case external source of user and
+    # group mappings to numeric UID and GID is being used, such as
+    # COPY in of /etc/passwd.
+    chown -R openldap:openldap /var/lib/ldap.dist
+    chown -R openldap:openldap /etc/ldap/slapd.d.dist
+    chown -R openldap:openldap /var/lib/ldap
+    chown -R openldap:openldap /etc/ldap/slapd.d
+    chown openldap:openldap /var/run/slapd
+
     slapd -h ldapi:/// -u openldap -g openldap > "${OUTPUT}" 2>&1
 }
 
