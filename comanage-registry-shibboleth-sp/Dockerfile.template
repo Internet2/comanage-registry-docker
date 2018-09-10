@@ -67,7 +67,7 @@ RUN wget -O xerces.tar.gz "${XERCESC_URL}" \
       && cd .. \
       && rm -r src 
 
-ARG XMLSECC_URL=http://www.apache.org/dist/santuario/c-library/xml-security-c-1.7.3.tar.gz
+ARG XMLSECC_URL=http://archive.apache.org/dist/santuario/c-library/xml-security-c-1.7.3.tar.gz
 
 RUN wget -O xmlsecc.tar.gz "${XMLSECC_URL}" \
       && mkdir -p src \
