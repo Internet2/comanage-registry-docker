@@ -19,6 +19,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Default for maximum number of open file descriptors for slapd.
+SLAPD_MAXIMUM_OPEN_FILE_DESCRIPTORS=1024
+
 if [[ -n "${LDAP_DEBUG}" ]]; then
     OUTPUT=/dev/stdout
     set -x
@@ -489,6 +492,7 @@ function comanage_ldap_utils::exec_slapd() {
     chown -R openldap:openldap /etc/ldap/slapd.d
     chown openldap:openldap /var/run/slapd
 
+    ulimit -n "${SLAPD_MAXIMUM_OPEN_FILE_DESCRIPTORS:-$SLAPD_MAXIMUM_OPEN_FILE_DESCRIPTORS_DEFAULT}"
     exec "$@"
 }
 
@@ -535,6 +539,7 @@ function comanage_ldap_utils::exec_slapd_proxy() {
     chown -R openldap:openldap /etc/ldap/slapd.d
     chown openldap:openldap /var/run/slapd
 
+    ulimit -n "${SLAPD_MAXIMUM_OPEN_FILE_DESCRIPTORS:-$SLAPD_MAXIMUM_OPEN_FILE_DESCRIPTORS_DEFAULT}"
     exec "$@"
 }
 
@@ -686,6 +691,7 @@ function comanage_ldap_utils::start_slapd_socket() {
     chown -R openldap:openldap /etc/ldap/slapd.d
     chown openldap:openldap /var/run/slapd
 
+    ulimit -n "${SLAPD_MAXIMUM_OPEN_FILE_DESCRIPTORS:-$SLAPD_MAXIMUM_OPEN_FILE_DESCRIPTORS_DEFAULT}"
     slapd -h ldapi:/// -u openldap -g openldap > "${OUTPUT}" 2>&1
 }
 
