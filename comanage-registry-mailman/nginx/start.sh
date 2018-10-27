@@ -28,6 +28,7 @@ set -e
 injectable_config_vars=( 
     MAILMAN_CORE_HOST
     MAILMAN_CORE_PORT
+    SERVER_NAME
 )
 
 # Default values.
@@ -61,6 +62,9 @@ if [ -n "${NGINX_DH_PARAM_FILE}" ]; then
     chmod 600 /etc/nginx/dhparam.pem
     chown www-data /etc/nginx/dhparam.pem
 fi
+
+# Edit the nginx configuration file in place to set the server name.
+sed -i -e s@%%SERVER_NAME%%@"${SERVER_NAME:-unknown}"@ /etc/nginx/nginx.conf
 
 # Wait for the mailman core container to be ready.
 until nc -z -w 1 "${MAILMAN_CORE_HOST}" "${MAILMAN_CORE_PORT}"
