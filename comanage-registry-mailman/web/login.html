@@ -1,0 +1,29 @@
+{% extends "account/base.html" %}
+
+{% load i18n %}
+{% load account socialaccount %}
+{% load bootstrap_tags %}
+
+{% block head_title %}{% trans "Sign In" %}{% endblock %}
+
+{% block content %}
+
+<h1>{% trans "Sign In" %}</h1>
+
+{% include "django_mailman3/login_extra_top.html" %}
+
+<form class="login form-horizontal" method="POST" action="{% url 'account_login' %}">
+  {% bootstrap_form_horizontal form 2 4 %}
+  {% if redirect_field_value %}
+  <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+  {% endif %}
+  <div class="form-group">
+    <div class="col-md-offset-2 col-md-4">
+      <button class="btn btn-primary" type="submit">{% trans "Sign In" %}</button>
+      &nbsp;
+      <a href="{% url 'account_reset_password' %}">{% trans "Forgot Password?" %}</a>
+    </div>
+  </div>
+</form>
+
+{% endblock %}
