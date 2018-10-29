@@ -25,8 +25,8 @@ OUTPUT=/dev/stdout
 # variables or the contents of files.
 
 injectable_config_vars=( 
-    POSTFIX_MAILNAME
     POSTFIX_MYHOSTNAME
+    POSTFIX_MYNETWORKS
 )
 
 # If the file associated with a configuration variable is present then 
@@ -45,21 +45,20 @@ do
 done
 
 # Create the /etc/mailname file
-if [ -n "${POSTFIX_MAILNAME}" ]; then
-    MAILNAME=${POSTFIX_MAILNAME}
+if [ -n "${POSTFIX_MYHOSTNAME}" ]; then
+    MYHOSTNAME=${POSTFIX_MYHOSTNAME}
 else
-    MAILNAME=`/bin/hostname -f`
+    MYHOSTNAME=`/bin/hostname -f`
 fi
 
-echo "${MAILNAME}" > /etc/mailname
+echo "${MYHOSTNAME}" > /etc/mailname
 chmod 644 /etc/mailname
 
-if [ -n "${POSTFIX_MYHOSTNAME}" ]; then
-    MAILNAME=${POSTFIX_MYHOSTNAME}
-else
-    MAILNAME=`/bin/hostname -f`
-fi
+# Edit the postfix configuration file in place to set myhostname.
+sed -i -e s@%%MYHOSTNAME%%@"${MYHOSTNAME}"@ /etc/postfix/main.cf
 
-
+# Edit the postfix configuration file in place to set mynetworks.
+MYNETWORKS=${POSTFIX_MYNETWORKS:-127.0.0.0/8 [::1]/128}
+sed -i -e s@%%MYNETWORKS%%@"${MYNETWORKS}"@ /etc/postfix/main.cf
 
 exec /usr/lib/postfix/sbin/master -c /etc/postfix -d

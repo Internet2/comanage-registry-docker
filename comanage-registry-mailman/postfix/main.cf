@@ -33,6 +33,12 @@ append_dot_mydomain = no
 # Uncomment the next line to generate "delayed mail" warnings
 #delay_warning_time = 4h
 
+# Disable VRFY command since not normally needed for mail delivery with Mailman
+disable_vrfy_command=yes
+
+# Require HELO
+smtpd_helo_required=yes
+
 readme_directory = no
 
 # See http://www.postfix.org/COMPATIBILITY_README.html -- default to 2 on
@@ -50,12 +56,12 @@ smtp_tls_session_cache_database = btree:${data_directory}/smtp_scache
 # information on enabling SSL in the smtp client.
 
 smtpd_relay_restrictions = permit_mynetworks permit_sasl_authenticated defer_unauth_destination
-myhostname = lists-dev.sphericalcowgroup.com
+myhostname = %%MYHOSTNAME%%
 alias_maps = hash:/etc/aliases
 alias_database = hash:/etc/aliases
-mydestination = $myhostname, localhost.localdomain, localhost
+mydestination = $myhostname
 relayhost = 
-mynetworks = 10.0.0.0/8 172.16.0.0/12 127.0.0.0/8 [::ffff:127.0.0.0]/104 [::1]/128
+mynetworks = %%MYNETWORKS%%
 mailbox_size_limit = 0
 recipient_delimiter = +
 inet_interfaces = all
