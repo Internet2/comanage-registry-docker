@@ -54,7 +54,7 @@ RUN wget -O log4shib.tar.gz "${LOG4SHIB_URL}" \
       && cd .. \
       && rm -r src 
 
-ARG XERCESC_URL=http://www.apache.org/dist/xerces/c/3/sources/xerces-c-3.2.1.tar.gz
+ARG XERCESC_URL=http://www.apache.org/dist/xerces/c/3/sources/xerces-c-3.2.2.tar.gz
 
 RUN wget -O xerces.tar.gz "${XERCESC_URL}" \
       && mkdir -p src \
