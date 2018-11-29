@@ -269,7 +269,7 @@ fi
 
 # Enable any supported non-core plugins if requested.
 if [ -n "$COMANAGE_REGISTRY_ENABLE_PLUGIN" ]; then
-    plugins=(`echo "$COMANAGE_REGISTRY_ENABLE_PLUGIN" | sed -e 's@,@ @'`) > "$OUTPUT" 2>&1
+    plugins=(`echo "$COMANAGE_REGISTRY_ENABLE_PLUGIN" | sed -e 's@,@ @g'`) > "$OUTPUT" 2>&1
     for plugin in "${plugins[@]}"; 
     do 
         echo "Enabling available plugin $plugin..." > "$OUTPUT" 2>&1
