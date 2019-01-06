@@ -17,7 +17,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ARG COMANAGE_REGISTRY_VERSION=develop
-FROM sphericalcowgroup/comanage-registry-base:${COMANAGE_REGISTRY_VERSION}
+ARG COMANAGE_REGISTRY_IMAGE_VERSION=1
+FROM sphericalcowgroup/comanage-registry-base:${COMANAGE_REGISTRY_VERSION}-${COMANAGE_REGISTRY_IMAGE_VERSION}
 
 COPY basic-auth /etc/apache2/
 COPY 000-comanage.conf /etc/apache2/sites-available/
