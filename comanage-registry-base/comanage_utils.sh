@@ -36,6 +36,8 @@ fi
 #   None
 ##########################################
 function comanage_utils::consume_injected_environment() {
+    
+    echo "Examining environment variables..." > "$OUTPUT" 
 
     # Configuration details that may be injected through environment
     # variables or the contents of files.
@@ -74,8 +76,11 @@ function comanage_utils::consume_injected_environment() {
 
         if [[ -e "$file_name" ]]; then
             declare -g "${config_var}"=`cat $file_name`
+            echo "Set ${config_var} to be contents of ${file_name}" > "$OUTPUT"
         fi
     done
+
+    echo "Done examining environment variables" > "$OUTPUT"
 }
 
 ##########################################
@@ -164,6 +169,7 @@ function comanage_utils::exec_apache_http_server() {
 #   COMANAGE_REGISTRY_DATABASE_USER_PASSWORD
 #   COMANAGE_REGISTRY_DATASOURCE
 #   COMANAGE_REGISTRY_DIR
+#   OUTPUT
 # Arguments:
 #   None
 # Returns:
@@ -195,6 +201,7 @@ class DATABASE_CONFIG {
 
 }
 EOF
+        echo "Wrote new database configuration file ${database_config}" > "$OUTPUT"
     fi
 }
 
@@ -237,6 +244,7 @@ class EmailConfig {
   );
 }
 EOF
+        echo "Wrote new email configuration file ${email_config}" > "$OUTPUT"
     fi
 }
 
@@ -260,6 +268,7 @@ function comanage_utils::prepare_https_cert_key() {
         cp "$HTTPS_CERT_FILE" /etc/apache2/cert.pem
         chown www-data /etc/apache2/cert.pem
         chmod 0644 /etc/apache2/cert.pem
+        echo "Copied HTTPS certificate file ${HTTPS_CERT_FILE} to /etc/apache2/cert.pem" > "$OUTPUT"
     fi
 
     if [[ -n "$HTTPS_PRIVKEY_FILE" ]]; then
@@ -267,6 +276,7 @@ function comanage_utils::prepare_https_cert_key() {
         cp "$HTTPS_PRIVKEY_FILE" /etc/apache2/privkey.pem
         chown www-data /etc/apache2/privkey.pem
         chmod 0600 /etc/apache2/privkey.pem
+        echo "Copied HTTPS private key file ${HTTPS_PRIVKEY_FILE} to /etc/apache2/key.pem" > "$OUTPUT"
     fi
 }
 
@@ -283,10 +293,24 @@ function comanage_utils::prepare_local_directory() {
 
     # Make sure the directory structure we need is available
     # in the data volume for $COMANAGE_REGISTRY_DIR/local
-    mkdir -p "$COMANAGE_REGISTRY_DIR/local/Config"
-    mkdir -p "$COMANAGE_REGISTRY_DIR/local/Plugin"
-    mkdir -p "$COMANAGE_REGISTRY_DIR/local/View/Pages/public"
-    mkdir -p "$COMANAGE_REGISTRY_DIR/local/webroot/img"
+    local directories
+
+    declare -a directories=("Config"
+                            "Plugin"
+                            "View/Pages/public"
+                            "webroot/img"
+                            )
+
+    local dir
+    local full_path
+    for dir in "${directories[@]}"
+    do
+        full_path="${COMANAGE_REGISTRY_DIR}/local/${dir}"
+        if [[ ! -d "${full_path}" ]]; then
+            mkdir -p "${full_path}" > "$OUTPUT" 2>&1
+            echo "Created directory ${full_path}"
+        fi
+    done
 }
 
 ##########################################
@@ -306,9 +330,14 @@ function comanage_utils::prepare_server_name() {
         SERVER_NAME=$(openssl x509 -in /etc/apache2/cert.pem -text -noout | 
                       sed -n '/X509v3 Subject Alternative Name:/ {n;p}' | 
                       sed -E 's/.*DNS:(.*)\s*$/\1/')
-        if [[ -z "$SERVER_NAME" ]]; then
+        if [[ -n "$SERVER_NAME" ]]; then
+            echo "Set SERVER_NAME=${SERVER_NAME} using Subject Alternative Name from x509 certificate" > "$OUTPUT"
+        else
             SERVER_NAME=$(openssl x509 -in /etc/apache2/cert.pem -subject -noout | 
                           sed -E 's/subject=.*CN=(.*)\s*/\1/')
+            if [[ -n "$SERVER_NAME" ]]; then
+                echo "Set SERVER_NAME=${SERVER_NAME} using CN from x509 certificate" > "$OUTPUT"
+            fi
         fi
     fi
 
@@ -345,6 +374,7 @@ function comanage_utils::registry_clear_cache() {
     
     if [[ -d $cache_dir ]]; then
         find $cache_dir -type f -exec rm -f {} \;
+        echo "Cleared COmanage Registry CakePHP cache files in ${cache_dir}" > "$OUTPUT"
     fi
 
 }
@@ -402,6 +432,7 @@ EOF
 
     local setup_already
     pushd "$COMANAGE_REGISTRY_DIR/app" > "$OUTPUT" 2>&1
+    echo "Testing if COmanage Registry setup has been done previously..." > "$OUTPUT"
     ./Console/cake setupAlready > "$OUTPUT" 2>&1
     setup_already=$?
 
@@ -410,17 +441,20 @@ EOF
     local auto_generated_security
 
     if [ $setup_already -eq 0 ]; then
+        echo "COmanage Registry setup has not been done previously" > "$OUTPUT"
         rm -f "$COMANAGE_REGISTRY_DIR/local/Config/security.salt" > "$OUTPUT" 2>&1
         rm -f "$COMANAGE_REGISTRY_DIR/local/Config/security.seed" > "$OUTPUT" 2>&1
-        # Run database twice until issue on develop branch is resolved. Since
-        # the command is idempotent normally it is not a problem to have it run
-        # more than once.
-        ./Console/cake database > "$OUTPUT" 2>&1 && \
-        ./Console/cake database > "$OUTPUT" 2>&1 && \
+        echo "Running ./Console/cake database..." > "$OUTPUT"
+        ./Console/cake database > "$OUTPUT" 2>&1
+        echo "Running ./Console/cake setup..." > "$OUTPUT"
         ./Console/cake setup --admin-given-name "${COMANAGE_REGISTRY_ADMIN_GIVEN_NAME}" \
                              --admin-family-name "${COMANAGE_REGISTRY_ADMIN_FAMILY_NAME}" \
                              --admin-username "${COMANAGE_REGISTRY_ADMIN_USERNAME}" \
                              --enable-pooling "${COMANAGE_REGISTRY_ENABLE_POOLING}" > "$OUTPUT" 2>&1
+        echo "Set admin given name ${COMANAGE_REGISTRY_ADMIN_GIVEN_NAME}" > "$OUTPUT"
+        echo "Set admin family name ${COMANAGE_REGISTRY_ADMIN_FAMILY_NAME}" > "$OUTPUT"
+        echo "Set admin username ${COMANAGE_REGISTRY_ADMIN_USERNAME}" > "$OUTPUT"
+        echo "Set enable pooling to ${COMANAGE_REGISTRY_ENABLE_POOLING}" > "$OUTPUT"
         auto_generated_security=1
     fi
 
@@ -458,7 +492,10 @@ function comanage_utils::registry_upgrade() {
     comanage_utils::registry_clear_cache
 
     pushd "$COMANAGE_REGISTRY_DIR/app" > "$OUTPUT" 2>&1
+    echo "Running ./Console/cake upgradeVersion..." > "$OUTPUT"
     ./Console/cake upgradeVersion > "$OUTPUT" 2>&1
+    echo "Done running ./Console/cake upgradeVersion" > "$OUTPUT"
+    echo "You may ignore errors reported above if the Current and Target versions are the same" > "$OUTPUT"
     popd > "$OUTPUT" 2>&1
 
     # Force a datbase update if requested. This is helpful when deploying
@@ -467,9 +504,10 @@ function comanage_utils::registry_upgrade() {
     # of this scenario is when new code is introduced in the develop
     # branch but before a release happens.
     if [ -n "$COMANAGE_REGISTRY_DATABASE_SCHEMA_FORCE" ]; then
-        echo "Forcing a database schema update..." > "$OUTPUT" 2>&1
+        echo "Forcing a database schema update..." > "$OUTPUT" 
         pushd "$COMANAGE_REGISTRY_DIR/app" > "$OUTPUT" 2>&1
         ./Console/cake database > "$OUTPUT" 2>&1
+        echo "Done forcing database schema update" > "$OUTPUT" 
         popd > "$OUTPUT" 2>&1
     fi
 
@@ -490,7 +528,15 @@ function comanage_utils::tmp_ownership() {
 
     # Ensure that the web server user owns the tmp directory
     # and all children.
-    chown -R www-data:www-data "$COMANAGE_REGISTRY_DIR/app/tmp"
+    local tmp_dir
+    local ownership
+
+    tmp_dir="${COMANAGE_REGISTRY_DIR}/app/tmp"
+    ownership="www-data:www-data"
+
+    chown -R www-data:www-data "${tmp_dir}"
+
+    echo "Recursively set ownership of ${tmp_dir} to ${ownership}" > "$OUTPUT"
 
 }
 
@@ -530,12 +576,15 @@ EOF
     pushd "$COMANAGE_REGISTRY_DIR/app" > "$OUTPUT" 2>&1
 
     # Loop until we are able to open a connection to the database.
+    echo "Testing database availability..." > "$OUTPUT"
     until ./Console/cake databaseTest > "$OUTPUT" 2>&1; do
         >&2 echo "Database is unavailable - sleeping"
         sleep 1
     done
 
     rm -f "$database_test_script"
+
+    echo "Database is available" > "$OUTPUT"
 
     popd > "$OUTPUT" 2>&1
 }
