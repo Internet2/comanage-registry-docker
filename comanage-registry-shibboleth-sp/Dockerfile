@@ -17,9 +17,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ARG COMANAGE_REGISTRY_VERSION=develop
-FROM sphericalcowgroup/comanage-registry-base:${COMANAGE_REGISTRY_VERSION} AS comanage
+ARG COMANAGE_REGISTRY_IMAGE_VERSION=1
+ARG COMANAGE_REGISTRY_SHIBBOLETH_SP_VERSION="3.0.3"
+ARG COMANAGE_REGISTRY_SHIBBOLETH_SP_BASE_IMAGE_VERSION=1
 
-FROM sphericalcowgroup/comanage-registry-shibboleth-sp-base AS shib-base
+FROM sphericalcowgroup/comanage-registry-base:${COMANAGE_REGISTRY_VERSION}-${COMANAGE_REGISTRY_IMAGE_VERSION} AS comanage
+
+FROM sphericalcowgroup/comanage-registry-shibboleth-sp-base:${COMANAGE_REGISTRY_SHIBBOLETH_SP_VERSION}-${COMANAGE_REGISTRY_SHIBBOLETH_SP_BASE_IMAGE_VERSION} AS shib-base
 
 FROM comanage
 
@@ -32,8 +36,10 @@ RUN /usr/sbin/useradd --system _shibd \
       && chown -R _shibd:_shibd /opt/shibboleth-sp/var \
       && cp -a /opt/shibboleth-sp/etc/shibboleth /etc/shibboleth \
       && rm -f /etc/shibboleth/shibboleth2.xml \
-      && chown _shibd:_shibd /etc/shibboleth/sp-cert.pem \
-      && chown _shibd:_shibd /etc/shibboleth/sp-key.pem \
+      && chown _shibd:_shibd /etc/shibboleth/sp-signing-cert.pem \
+      && chown _shibd:_shibd /etc/shibboleth/sp-signing-key.pem \
+      && chown _shibd:_shibd /etc/shibboleth/sp-encrypt-cert.pem \
+      && chown _shibd:_shibd /etc/shibboleth/sp-encrypt-key.pem \
       && cd /opt/shibboleth-sp/etc \
       && rm -rf shibboleth \
       && ln -s /etc/shibboleth shibboleth \

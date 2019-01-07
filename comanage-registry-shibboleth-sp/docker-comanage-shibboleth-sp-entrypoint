@@ -37,6 +37,10 @@ injectable_config_vars=(
     SHIBBOLETH_SP_ENTITY_ID
     SHIBBOLETH_SP_CERT
     SHIBBOLETH_SP_PRIVKEY
+    SHIBBOLETH_SP_SIGNING_CERT
+    SHIBBOLETH_SP_SIGNING_PRIVKEY
+    SHIBBOLETH_SP_ENCRYPT_CERT
+    SHIBBOLETH_SP_ENCRYPT_KEY
     SHIBBOLETH_SP_SAMLDS_URL
 )
 
@@ -100,12 +104,42 @@ if [ -n "$SHIBBOLETH_SP_PRIVKEY" ]; then
     chmod 0600 /etc/shibboleth/sp-key.pem
 fi
 
+if [ -n "$SHIBBOLETH_SP_SIGNING_CERT" ]; then
+    cp "$SHIBBOLETH_SP_SIGNING_CERT" /etc/shibboleth/sp-signing-cert.pem
+    chown _shibd /etc/shibboleth/sp-signing-cert.pem
+    chmod 0644 /etc/shibboleth/sp-signing-cert.pem
+fi
+
+if [ -n "$SHIBBOLETH_SP_SIGNING_PRIVKEY" ]; then
+    cp "$SHIBBOLETH_SP_SIGNING_PRIVKEY" /etc/shibboleth/sp-signing-key.pem
+    chown _shibd /etc/shibboleth/sp-signing-key.pem
+    chmod 0600 /etc/shibboleth/sp-signing-key.pem
+fi
+
+if [ -n "$SHIBBOLETH_SP_ENCRYPT_CERT" ]; then
+    cp "$SHIBBOLETH_SP_ENCRYPT_CERT" /etc/shibboleth/sp-encrypt-cert.pem
+    chown _shibd /etc/shibboleth/sp-encrypt-cert.pem
+    chmod 0644 /etc/shibboleth/sp-encrypt-cert.pem
+fi
+
+if [ -n "$SHIBBOLETH_SP_ENCRYPT_PRIVKEY" ]; then
+    cp "$SHIBBOLETH_SP_ENCRYPT_PRIVKEY" /etc/shibboleth/sp-encrypt-key.pem
+    chown _shibd /etc/shibboleth/sp-encrypt-key.pem
+    chmod 0600 /etc/shibboleth/sp-encrypt-key.pem
+fi
+
 # A deployer may make their own mapping between the _shibd username
 # and the UID, and between the _shibd group and GID, so before starting 
 # make sure files have the correct ownership and group. These are the 
 # files and directories that must be owned by _shibd at runtime.
 chown _shibd:_shibd /etc/shibboleth/sp-cert.pem > /dev/null 2>&1
 chown _shibd:_shibd /etc/shibboleth/sp-key.pem > /dev/null 2>&1
+
+chown _shibd:_shibd /etc/shibboleth/sp-signing-cert.pem > /dev/null 2>&1
+chown _shibd:_shibd /etc/shibboleth/sp-signing-key.pem > /dev/null 2>&1
+
+chown _shibd:_shibd /etc/shibboleth/sp-encrypt-cert.pem > /dev/null 2>&1
+chown _shibd:_shibd /etc/shibboleth/sp-encrypt-key.pem > /dev/null 2>&1
 
 chown _shibd:_shibd /opt/shibboleth-sp/var > /dev/null 2>&1
 chown _shibd:_shibd /opt/shibboleth-sp/var > /dev/null 2>&1
