@@ -1,4 +1,4 @@
-ServerName https://${SERVER_NAME}:443
+ServerName https://${COMANAGE_REGISTRY_VIRTUAL_HOST_FQDN}:443
 
 DocumentRoot /var/www/html
 

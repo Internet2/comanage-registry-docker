@@ -57,6 +57,7 @@ function comanage_utils::consume_injected_environment() {
         COMANAGE_REGISTRY_EMAIL_ACCOUNT_PASSWORD
         COMANAGE_REGISTRY_SECURITY_SALT
         COMANAGE_REGISTRY_SECURITY_SEED
+        COMANAGE_REGISTRY_VIRTUAL_HOST_FQDN
         HTTPS_CERT_FILE
         HTTPS_PRIVKEY_FILE
         SERVER_NAME
@@ -317,26 +318,39 @@ function comanage_utils::prepare_local_directory() {
 # Prepare web server name
 # Globals:
 #   SERVER_NAME
+#   COMANAGE_REGISTRY_VIRTUAL_HOST_FQDN
 # Arguments:
 #   None
 # Returns:
 #   None
 ##########################################
 function comanage_utils::prepare_server_name() {
+    
+    # SERVER_NAME is deprecated in favor of COMANAGE_REGISTRY_VIRTUAL_HOST_FQDN
+    # and will not be supported in a future version.
+    if [[ -n "$SERVER_NAME" ]]; then
+        echo "SERVER_NAME is deprecated and will not be supported in a future version"
+        echo "Use COMANAGE_REGISTRY_VIRTUAL_HOST_FQDN instead of SERVER_NAME"
+        if [[ -z "$COMANAGE_REGISTRY_VIRTUAL_HOST_FQDN" ]]; then
+            COMANAGE_REGISTRY_VIRTUAL_HOST_FQDN="${SERVER_NAME}"
+            echo "SERVER_NAME=${SERVER_NAME} has been injected" > "$OUTPUT"
+            echo "Setting COMANAGE_REGISTRY_VIRTUAL_HOST_FQDN=${COMANAGE_REGISTRY_VIRTUAL_HOST_FQDN}"
+        fi
+    fi
 
-    # If SERVER_NAME has not been injected try to determine
+    # If COMANAGE_REGISTRY_VIRTUAL_HOST_FQDN has not been injected try to determine
     # it from the HTTPS_CERT_FILE.
-    if [[ -z "$SERVER_NAME" ]]; then
-        SERVER_NAME=$(openssl x509 -in /etc/apache2/cert.pem -text -noout | 
+    if [[ -z "$COMANAGE_REGISTRY_VIRTUAL_HOST_FQDN" ]]; then
+        COMANAGE_REGISTRY_VIRTUAL_HOST_FQDN=$(openssl x509 -in /etc/apache2/cert.pem -text -noout | 
                       sed -n '/X509v3 Subject Alternative Name:/ {n;p}' | 
                       sed -E 's/.*DNS:(.*)\s*$/\1/')
-        if [[ -n "$SERVER_NAME" ]]; then
-            echo "Set SERVER_NAME=${SERVER_NAME} using Subject Alternative Name from x509 certificate" > "$OUTPUT"
+        if [[ -n "$COMANAGE_REGISTRY_VIRTUAL_HOST_FQDN" ]]; then
+            echo "Set COMANAGE_REGISTRY_VIRTUAL_HOST_FQDN=${COMANAGE_REGISTRY_VIRTUAL_HOST_FQDN} using Subject Alternative Name from x509 certificate" > "$OUTPUT"
         else
-            SERVER_NAME=$(openssl x509 -in /etc/apache2/cert.pem -subject -noout | 
+            COMANAGE_REGISTRY_VIRTUAL_HOST_FQDN=$(openssl x509 -in /etc/apache2/cert.pem -subject -noout | 
                           sed -E 's/subject=.*CN=(.*)\s*/\1/')
-            if [[ -n "$SERVER_NAME" ]]; then
-                echo "Set SERVER_NAME=${SERVER_NAME} using CN from x509 certificate" > "$OUTPUT"
+            if [[ -n "$COMANAGE_REGISTRY_VIRTUAL_HOST_FQDN" ]]; then
+                echo "Set COMANAGE_REGISTRY_VIRTUAL_HOST_FQDN=${COMANAGE_REGISTRY_VIRTUAL_HOST_FQDN} using CN from x509 certificate" > "$OUTPUT"
             fi
         fi
     fi
@@ -345,17 +359,15 @@ function comanage_utils::prepare_server_name() {
     # This configures the server name for the default Debian
     # Apache HTTP Server configuration but not the server name used
     # by any virtual hosts.
-    sed -i -e s@%%SERVER_NAME%%@"${SERVER_NAME:-unknown}"@g /etc/apache2/sites-available/000-comanage.conf
-
     cat > /etc/apache2/conf-available/server-name.conf <<EOF
-ServerName ${SERVER_NAME:-unknown}
+ServerName ${COMANAGE_REGISTRY_VIRTUAL_HOST_FQDN:-unknown}
 EOF
 
     a2enconf server-name.conf > "$OUTPUT" 2>&1
 
     # Export the server name so that it may be used by 
-    # virtual host configurations.
-    export SERVER_NAME
+    # Apache HTTP Server virtual host configurations.
+    export COMANAGE_REGISTRY_VIRTUAL_HOST_FQDN
 }
 
 ##########################################
