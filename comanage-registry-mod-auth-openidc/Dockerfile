@@ -17,11 +17,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ARG COMANAGE_REGISTRY_VERSION=develop
-FROM sphericalcowgroup/comanage-registry-base:${COMANAGE_REGISTRY_VERSION} AS comanage
+ARG COMANAGE_REGISTRY_IMAGE_VERSION=1
+FROM sphericalcowgroup/comanage-registry-base:${COMANAGE_REGISTRY_VERSION}-${COMANAGE_REGISTRY_IMAGE_VERSION} AS comanage
 
 FROM debian:stretch AS building
 
-ENV MOD_AUTH_OPENIDC_SRC_URL https://github.com/zmartzone/mod_auth_openidc/archive/v2.3.3.tar.gz
+ENV MOD_AUTH_OPENIDC_SRC_URL https://github.com/zmartzone/mod_auth_openidc/archive/v2.3.10.tar.gz
 
 RUN apt-get update \
       && apt-get install -y --no-install-recommends \
