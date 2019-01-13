@@ -15,6 +15,3 @@ SSLEngine on
 SSLProtocol all -SSLv2 -SSLv3
 SSLCipherSuite EECDH+AESGCM:EDH+AESGCM:AES256+EECDH:AES256+EDH
 SSLHonorCipherOrder on
-
-SSLCertificateFile /etc/apache2/cert.pem
-SSLCertificateKeyFile /etc/apache2/privkey.pem
