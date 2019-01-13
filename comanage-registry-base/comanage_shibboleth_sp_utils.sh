@@ -264,7 +264,7 @@ function comanage_shibboleth_sp_utils::manage_uid_gid() {
     fi
 
     # Warn about any files the shibd user cannot read.
-    su "${owner}" -c 'find /etc/shibboleth ! -readable' > "${not_readable}" 2>/dev/null
+    sudo -u "${owner}" find /etc/shibboleth ! -readable > "${not_readable}" 2>/dev/null
     if [[ -s "${not_readable}" ]]; then
         echo "WARNING: the following files are not readable by ${owner}"
         cat "${not_readable}"

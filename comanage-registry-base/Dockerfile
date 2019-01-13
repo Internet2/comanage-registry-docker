@@ -47,17 +47,19 @@ RUN apt-get update && apt-get install -y \
          libpq-dev \
       && apt-get clean
 
-ARG COMANAGE_REGISTRY_VERSION=develop
-ARG COMANAGE_REGISTRY_SRC_URL=https://github.com/Internet2/comanage-registry/archive/${COMANAGE_REGISTRY_VERSION}.tar.gz
-
+ARG COMANAGE_REGISTRY_VERSION
+ENV COMANAGE_REGISTRY_VERSION ${COMANAGE_REGISTRY_VERSION:-develop}
 LABEL comanage_registry_version=${COMANAGE_REGISTRY_VERSION}
-LABEL comanage_registry_src_url=${COMANAGE_REGISTRY_SRC_URL}
 
-ENV COMANAGE_REGISTRY_DIR /srv/comanage-registry
+ENV COMANAGE_REGISTRY_SRC_URL=https://github.com/Internet2/comanage-registry/archive/${COMANAGE_REGISTRY_VERSION}.tar.gz
 
-WORKDIR "$COMANAGE_REGISTRY_DIR"
+ARG COMANAGE_REGISTRY_DIR
+ENV COMANAGE_REGISTRY_DIR ${COMANAGE_REGISTRY_DIR:-/srv/comanage-registry}
+LABEL comanage_registry_dir=${COMANAGE_REGISTRY_DIR}
 
-RUN mkdir -p "${COMANAGE_REGISTRY_DIR}" \
+WORKDIR $COMANAGE_REGISTRY_DIR
+
+RUN mkdir -p ${COMANAGE_REGISTRY_DIR} \
       && wget -O comanage.tar.gz ${COMANAGE_REGISTRY_SRC_URL} \
       && tar -zxf comanage.tar.gz -C ${COMANAGE_REGISTRY_DIR} --strip-components=1 \
       && rm -f comanage.tar.gz \
@@ -66,9 +68,7 @@ RUN mkdir -p "${COMANAGE_REGISTRY_DIR}" \
       && chown -R www-data:www-data ${COMANAGE_REGISTRY_DIR}/app/tmp \
       && cd /var/www/html \
       && ln -s ${COMANAGE_REGISTRY_DIR}/app/webroot registry \
-      && rm -rf ${COMANAGE_REGISTRY_DIR}/local/* \
-      && ln -s ${COMANAGE_REGISTRY_DIR}/local /local \
-      && sed -ie 's/'"'"'engine'"'"' => '"'"'FileLog'"'"'/'"'"'engine'"'"' => '"'"'ConsoleLog'"'"'/' "$COMANAGE_REGISTRY_DIR/app/Config/bootstrap.php" 
+      && rm -rf ${COMANAGE_REGISTRY_DIR}/local/*
 
 RUN a2enmod headers \
       && a2enmod ssl \
@@ -87,12 +87,7 @@ COPY comanage_utils.sh /usr/local/lib/
 COPY comanage_shibboleth_sp_utils.sh /usr/local/lib/
 COPY docker-comanage-entrypoint /usr/local/bin/
 
-# expose COmanage Registry local directory
-VOLUME ["/local"]
-
-ENTRYPOINT ["docker-comanage-entrypoint"]
-
-WORKDIR /var/www/html
+VOLUME ${COMANAGE_REGISTRY_DIR}/local
 
 EXPOSE 80 443
 
@@ -110,5 +105,7 @@ ENV COMANAGE_REGISTRY_ADMIN_GIVEN_NAME ${COMANAGE_REGISTRY_ADMIN_GIVEN_NAME:-Reg
 ENV COMANAGE_REGISTRY_ADMIN_FAMILY_NAME ${COMANAGE_REGISTRY_ADMIN_FAMILY_NAME:-Admin}
 ENV COMANAGE_REGISTRY_ADMIN_USERNAME ${COMANAGE_REGISTRY_ADMIN_USERNAME:-registry.admin}
 ENV COMANAGE_REGISTRY_ENABLE_POOLING ${COMANAGE_REGISTRY_ENABLE_POOLING:-No}
+
+ENTRYPOINT ["docker-comanage-entrypoint"]
 
 CMD ["apache2-foreground"]

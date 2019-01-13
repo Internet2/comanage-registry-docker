@@ -4,9 +4,6 @@ DocumentRoot /var/www/html
 
 RedirectMatch ^/$ /registry/
 
-ErrorLog ${APACHE_LOG_DIR}/error.log
-CustomLog ${APACHE_LOG_DIR}/access.log combined
-
 LogLevel warn
 
 Header always set Strict-Transport-Security "max-age=63072000; includeSubDomains"

@@ -36,7 +36,7 @@ mkfifo -m 666 /tmp/loghttpd > "$OUTPUT" 2>&1
 # Format any console output from shibd into standard TIER form.
 rm -f /tmp/logshibd > "$OUTPUT" 2>&1
 mkfifo -m 666 /tmp/logshibd > "$OUTPUT" 2>&1
-(cat <> /tmp/logshibd | awk -v ENV="$ENV" -v UT="$USERTOKEN" '{printf "httpd;console;%s;%s;%s\n", ENV, UT, $0; fflush()}' 1>/tmp/logpipe 2>&1)&
+(cat <> /tmp/logshibd | awk -v ENV="$ENV" -v UT="$USERTOKEN" '{printf "shibd;console;%s;%s;%s\n", ENV, UT, $0; fflush()}' 1>/tmp/logpipe 2>&1)&
 
 # Format any console output from supervisord into standard TIER form.
 rm -f /tmp/logsuperd > "$OUTPUT" 2>&1
