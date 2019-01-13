@@ -19,13 +19,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-LOGHOST="collector.testbed.tier.internet2.edu"
-LOGPORT="5001"
+LOGHOST='collector.testbed.tier.internet2.edu'
+LOGPORT='5001'
 
-messagefile="/tmp/beaconmsg"
+messagefile='/tmp/beaconmsg'
 
-if [ -z "$TIER_BEACON_OPT_OUT" ]; then
-    cat > $messagefile <<EOF
+if [[ -z "${TIER_BEACON_OPT_OUT}" ]]; then
+    cat > ${messagefile} <<EOF
 {
     "msgType"          : "TIERBEACON",
     "msgName"          : "TIER",
@@ -37,13 +37,13 @@ if [ -z "$TIER_BEACON_OPT_OUT" ]; then
 }
 EOF
 
-    curl -s -XPOST "${LOGHOST}:${LOGPORT}/" -H 'Content-Type: application/json' -T $messagefile 1>/dev/null 2>&1
-    if [ $? -eq 0 ]; then
+    curl -s -XPOST "${LOGHOST}:${LOGPORT}/" -H 'Content-Type: application/json' -T ${messagefile} 1>/dev/null 2>&1
+    if [[ $? -eq 0 ]]; then
         echo "tier_beacon;none;$ENV;$USERTOKEN;"`date`"; TIER beacon sent"
     else
         echo "tier_beacon;none;$ENV;$USERTOKEN;"`date`"; Failed to send TIER beacon"
     fi
 
-    rm -f $messagefile 1>/dev/null 2>&1
+    rm -f ${messagefile} 1>/dev/null 2>&1
   
 fi

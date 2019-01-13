@@ -19,34 +19,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-if [ -n "$DEBUG" ]
-then
-    OUTPUT=/dev/stdout
-else
-    OUTPUT=/dev/null
-fi
+source /usr/local/lib/comanage_utils.sh
 
-# If ENV or USERTOKEN as injected by the deployer contain a semi-colon remove it.
-if [[ $ENV =~ .*";".* ]]; then
-    ENV=`echo $ENV | tr -d ';'`
-    export ENV
-fi
-
-if [[ $USERTOKEN =~ .*";".* ]]; then
-    USERTOKEN=`echo $USERTOKEN | tr -d ';'`
-    export USERTOKEN
-fi
-
-# If ENV or USERTOKEN as injected by the deployer contain a space remove it.
-if [[ $ENV =~ [[:space:]] ]]; then
-    ENV=`echo $ENV | tr -d [:space:]`
-    export ENV
-fi
-
-if [[ $USERTOKEN =~ [[:space:]] ]]; then
-    USERTOKEN=`echo $USERTOKEN | tr -d [:space:]`
-    export USERTOKEN
-fi
+comanage_utils::manage_tier_environment
 
 # Make a "console" logging pipe that anyone can write to regardless of who owns the process.
 rm -f /tmp/logpipe > "$OUTPUT" 2>&1

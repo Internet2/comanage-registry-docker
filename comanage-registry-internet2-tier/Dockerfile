@@ -16,6 +16,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+ARG COMANAGE_REGISTRY_VERSION=develop
+ARG COMANAGE_REGISTRY_IMAGE_VERSION=1
+
 FROM centos:centos7 AS php-build
 
 RUN yum -y install epel-release
@@ -41,7 +44,7 @@ RUN yum -y update && yum -y install \
 
 WORKDIR /usr/local/src
 
-ARG PHP_VERSION=7.2.5
+ARG PHP_VERSION=7.3.1
 ARG PHP_SRC_URL=https://github.com/php/php-src/archive/php-${PHP_VERSION}.tar.gz
 
 RUN mkdir php-src \
@@ -81,6 +84,8 @@ RUN cd php-src \
         && make -j "$(nproc)" \
         && make install 
 
+FROM sphericalcowgroup/comanage-registry-base:${COMANAGE_REGISTRY_VERSION}-${COMANAGE_REGISTRY_IMAGE_VERSION} AS comanage
+
 FROM centos:centos7
 
 RUN yum -y install epel-release
@@ -112,28 +117,19 @@ COPY --from=php-build /usr/local/lib/php /usr/local/lib/php/
 COPY --from=php-build /usr/local/include/php /usr/local/include/php/
 COPY --from=php-build /usr/local/bin /usr/local/bin/
 
-ARG COMANAGE_REGISTRY_VERSION
-ARG COMANAGE_REGISTRY_SRC_URL=https://github.com/Internet2/comanage-registry/archive/${COMANAGE_REGISTRY_VERSION}.tar.gz
+ENV COMANAGE_REGISTRY_DIR /srv/comanage-registry
+
+COPY --from=comanage ${COMANAGE_REGISTRY_DIR} ${COMANAGE_REGISTRY_DIR}/
+COPY --from=comanage /etc/apache2/apache-include-directory-registry /etc/httpd/
+COPY --from=comanage /etc/apache2/apache-include-virtual-host-port443-base /etc/httpd/
+COPY --from=comanage /etc/apache2/apache-include-virtual-host-port80-redirect /etc/httpd/
+COPY --from=comanage /usr/local/lib/comanage_utils.sh /usr/local/lib/
+COPY --from=comanage /usr/local/bin/docker-comanage-entrypoint /usr/local/bin/
+
 ENV COMANAGE_REGISTRY_VERSION ${COMANAGE_REGISTRY_VERSION}
 
 LABEL comanage_registry_version=${COMANAGE_REGISTRY_VERSION}
 LABEL comanage_registry_src_url=${COMANAGE_REGISTRY_SRC_URL}
-
-ENV COMANAGE_REGISTRY_DIR /srv/comanage-registry
-
-WORKDIR "$COMANAGE_REGISTRY_DIR"
-
-RUN mkdir -p "${COMANAGE_REGISTRY_DIR}" \
-        && wget -O comanage.tar.gz ${COMANAGE_REGISTRY_SRC_URL} \
-        && tar -zxf comanage.tar.gz -C ${COMANAGE_REGISTRY_DIR} --strip-components=1 \
-        && rm -f comanage.tar.gz \
-        && rm -f ${COMANAGE_REGISTRY_DIR}/app/tmp \
-        && cp -r ${COMANAGE_REGISTRY_DIR}/app/tmp.dist ${COMANAGE_REGISTRY_DIR}/app/tmp \
-        && chown -R apache:apache ${COMANAGE_REGISTRY_DIR}/app/tmp \
-        && cd /var/www/html \
-        && ln -s ${COMANAGE_REGISTRY_DIR}/app/webroot registry \
-        && rm -rf ${COMANAGE_REGISTRY_DIR}/local/* \
-        && ln -s ${COMANAGE_REGISTRY_DIR}/local /local 
 
 COPY 000-comanage.conf /etc/httpd/conf.d/
 COPY 10-php7.conf /etc/httpd/conf.modules.d/
