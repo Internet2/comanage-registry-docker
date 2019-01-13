@@ -16,7 +16,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-FROM php:7.3.0-apache-stretch
+FROM php:7.3.1-apache-stretch
 
 # Official PHP image with Apache HTTPD includes
 # --with-openssl
@@ -84,6 +84,7 @@ COPY apache-include-virtual-host-port443-base /etc/apache2/
 COPY apache-include-virtual-host-port80-redirect /etc/apache2/
 
 COPY comanage_utils.sh /usr/local/lib/
+COPY comanage_shibboleth_sp_utils.sh /usr/local/lib/
 COPY docker-comanage-entrypoint /usr/local/bin/
 
 # expose COmanage Registry local directory
