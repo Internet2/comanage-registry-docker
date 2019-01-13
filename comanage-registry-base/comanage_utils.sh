@@ -27,6 +27,46 @@ else
 fi
 
 ##########################################
+# Configure console (stdout) logging
+# Globals:
+#   COMANAGE_REGISTRY_DIR
+#   OUTPUT
+# Arguments:
+#   None
+# Returns:
+#   None
+##########################################
+function comanage_utils::configure_console_logging() {
+    sed -ie 's/'"'"'engine'"'"' => '"'"'FileLog'"'"'/'"'"'engine'"'"' => '"'"'ConsoleLog'"'"'/' "$COMANAGE_REGISTRY_DIR/app/Config/bootstrap.php" 
+}
+
+##########################################
+# Configure TIER logging
+# Globals:
+#   ENV
+#   USERTOKEN
+#   OUTPUT
+# Arguments:
+#   NONE
+# Returns:
+#   None
+##########################################
+function comanage_utils::configure_tier_logging() {
+
+    comanage_utils::manage_tier_environment
+
+    # Create pipes to use for COmanage Registry instead of standard log files.
+    rm -f "$COMANAGE_REGISTRY_DIR/app/tmp/logs/error.log" > "$OUTPUT" 2>&1
+    rm -f "$COMANAGE_REGISTRY_DIR/app/tmp/logs/debug.log" > "$OUTPUT" 2>&1
+    mkfifo -m 666 "$COMANAGE_REGISTRY_DIR/app/tmp/logs/error.log" > "$OUTPUT" 2>&1
+    mkfifo -m 666 "$COMANAGE_REGISTRY_DIR/app/tmp/logs/debug.log" > "$OUTPUT" 2>&1
+
+    # Format any output from COmanange Registry into standard TIER form.
+    (cat <> "$COMANAGE_REGISTRY_DIR/app/tmp/logs/error.log" | awk -v ENV="$ENV" -v UT="$USERTOKEN" '{printf "comanage_registry;error.log;%s;%s;%s\n", ENV, UT, $0; fflush()}' 1>/tmp/logpipe)&
+    (cat <> "$COMANAGE_REGISTRY_DIR/app/tmp/logs/debug.log" | awk -v ENV="$ENV" -v UT="$USERTOKEN" '{printf "comanage_registry;debug.log;%s;%s;%s\n", ENV, UT, $0; fflush()}' 1>/tmp/logpipe)&
+}
+
+##########################################
 # Consume injected environment variables
 # Globals:
 #   See function
@@ -131,6 +171,8 @@ function comanage_utils::exec_apache_http_server() {
 
     comanage_utils::consume_injected_environment
 
+    comanage_utils::configure_console_logging
+
     comanage_utils::prepare_local_directory
 
     comanage_utils::prepare_database_config
@@ -159,6 +201,40 @@ function comanage_utils::exec_apache_http_server() {
     fi
 
     exec "$@"
+}
+
+##########################################
+# Manage TIER environment variables
+# Globals:
+#   None
+# Arguments:
+#   None
+# Returns:
+#   None
+##########################################
+function comanage_utils::manage_tier_environment() {
+    
+    # If ENV or USERTOKEN as injected by the deployer contain a semi-colon remove it.
+    if [[ ${ENV} =~ .*";".* ]]; then
+        ENV=`echo ${ENV} | tr -d ';'`
+        export ENV
+    fi
+
+    if [[ ${USERTOKEN} =~ .*";".* ]]; then
+        USERTOKEN=`echo ${USERTOKEN} | tr -d ';'`
+        export USERTOKEN
+    fi
+
+    # If ENV or USERTOKEN as injected by the deployer contain a space remove it.
+    if [[ ${ENV} =~ [[:space:]] ]]; then
+        ENV=`echo ${ENV} | tr -d [:space:]`
+        export ENV
+    fi
+
+    if [[ ${USERTOKEN} =~ [[:space:]] ]]; then
+        USERTOKEN=`echo ${USERTOKEN} | tr -d [:space:]`
+        export USERTOKEN
+    fi
 }
 
 ##########################################
@@ -261,23 +337,39 @@ EOF
 ##########################################
 function comanage_utils::prepare_https_cert_key() {
 
+    local cert_path
+    local privkey_path
+    local web_user
+
+    if [[ -e '/etc/debian_version' ]]; then
+        cert_path='/etc/apache2/cert.pem'
+        privkey_path='/etc/apache2/privkey.pem'
+        web_user='www-data'
+    elif [[ -e '/etc/centos-release' ]]; then
+        cert_path='/etc/httpd/cert.pem'
+        privkey_path='/etc/httpd/privkey.pem'
+        web_user='apache'
+    fi
+
     # If defined use configured location of Apache HTTP Server 
     # HTTPS certificate and key files. The certificate file may also
     # include intermediate CA certificates, sorted from leaf to root.
-    if [[ -n "$HTTPS_CERT_FILE" ]]; then
-        rm -f /etc/apache2/cert.pem
-        cp "$HTTPS_CERT_FILE" /etc/apache2/cert.pem
-        chown www-data /etc/apache2/cert.pem
-        chmod 0644 /etc/apache2/cert.pem
-        echo "Copied HTTPS certificate file ${HTTPS_CERT_FILE} to /etc/apache2/cert.pem" > "$OUTPUT"
+    if [[ -n "${HTTPS_CERT_FILE}" ]]; then
+        rm -f "${cert_path}"
+        cp "${HTTPS_CERT_FILE}" "${cert_path}"
+        chown "${web_user}" "${cert_path}"
+        chmod 0644 "${cert_path}"
+        echo "Copied HTTPS certificate file ${HTTPS_CERT_FILE} to ${cert_path}" > "$OUTPUT"
+        echo "Set ownership of ${cert_path} to ${web_user}" > "$OUTPUT"
     fi
 
-    if [[ -n "$HTTPS_PRIVKEY_FILE" ]]; then
-        rm -f /etc/apache2/privkey.pem
-        cp "$HTTPS_PRIVKEY_FILE" /etc/apache2/privkey.pem
-        chown www-data /etc/apache2/privkey.pem
-        chmod 0600 /etc/apache2/privkey.pem
-        echo "Copied HTTPS private key file ${HTTPS_PRIVKEY_FILE} to /etc/apache2/key.pem" > "$OUTPUT"
+    if [[ -n "${HTTPS_PRIVKEY_FILE}" ]]; then
+        rm -f "${privkey_path}"
+        cp "${HTTPS_PRIVKEY_FILE}" "${privkey_path}"
+        chown "${web_user}" "${privkey_path}"
+        chmod 0600 "${privkey_path}"
+        echo "Copied HTTPS private key file ${HTTPS_PRIVKEY_FILE} to ${privkey_path}" > "$OUTPUT"
+        echo "Set ownership of ${privkey_path} to ${web_user}" > "$OUTPUT"
     fi
 }
 
@@ -359,11 +451,12 @@ function comanage_utils::prepare_server_name() {
     # This configures the server name for the default Debian
     # Apache HTTP Server configuration but not the server name used
     # by any virtual hosts.
-    cat > /etc/apache2/conf-available/server-name.conf <<EOF
+    if [[ -e '/etc/debian_version' ]]; then
+        cat > /etc/apache2/conf-available/server-name.conf <<EOF
 ServerName ${COMANAGE_REGISTRY_VIRTUAL_HOST_FQDN:-unknown}
 EOF
-
-    a2enconf server-name.conf > "$OUTPUT" 2>&1
+        a2enconf server-name.conf > "$OUTPUT" 2>&1
+    fi
 
     # Export the server name so that it may be used by 
     # Apache HTTP Server virtual host configurations.
@@ -543,10 +636,15 @@ function comanage_utils::tmp_ownership() {
     local tmp_dir
     local ownership
 
-    tmp_dir="${COMANAGE_REGISTRY_DIR}/app/tmp"
-    ownership="www-data:www-data"
+    if [[ -e '/etc/debian_version' ]]; then
+        ownership='www-data:www-data'
+    elif [[ -e '/etc/centos-release' ]]; then
+        ownership='apache:apache'
+    fi
 
-    chown -R www-data:www-data "${tmp_dir}"
+    tmp_dir="${COMANAGE_REGISTRY_DIR}/app/tmp"
+
+    chown -R "${ownership}" "${tmp_dir}"
 
     echo "Recursively set ownership of ${tmp_dir} to ${ownership}" > "$OUTPUT"
 
