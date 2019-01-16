@@ -19,8 +19,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set -e
-
 source /usr/local/lib/comanage_ldap_utils.sh
 
 comanage_ldap_utils::exec_slapd_proxy "$@"
