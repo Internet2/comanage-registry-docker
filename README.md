@@ -21,130 +21,67 @@ limitations under the License.
 
 # COmanage Registry Docker
 
-## What it is
-Docker version of [COmanage
-Registry](https://spaces.internet2.edu/display/COmanage/Home).
+This repository contains Dockerfiles, documenation, and other files necessary to
+build and deploy a Dockerized version of
+[COmanage Registry](https://spaces.internet2.edu/display/COmanage/Home).
 
-COmanage Registry is a web application that requires a relational database
+Since COmanage Registry is a web application that requires a relational database
 and an authentication mechanism such as 
-[Shibboleth](http://shibboleth.net/products/service-provider.html), 
-[SimpleSAMLphp](https://simplesamlphp.org/), 
-[mod_auth_openidc](https://github.com/pingidentity/mod_auth_openidc),
-or just simple [Basic Authentication](https://httpd.apache.org/docs/2.4/mod/mod_auth_basic.html).
-Since COmanage Registry itself is agnostic about the database and authentication
-mechanism used this repository includes multiple Dockerfiles to build images that use various
+[Shibboleth](https://www.shibboleth.net/products/service-provider/), 
+[mod\_auth\_openidc](https://github.com/zmartzone/mod_auth_openidc),
+or just simple [Basic Authentication](https://httpd.apache.org/docs/2.4/mod/mod_auth_basic.html),
+this repository includes multiple Dockerfiles to build images that use various
 combinations of tools.
 
-## How To
+## Evaluate COmanage Registry
 
-* Install Docker. These instructions require version 17.03.1 or higher.
+If you are new to COmanage Registry follow [these instructions](docs/evaluation.md) to build
+and run a simple deployment suitable for evaluating COmanage Registry. 
 
-* Install [Docker Compose](https://docs.docker.com/compose/). These instructions require 
-version 1.13.0 or higher.
+## Building Images
 
-* Clone this repository:
+The following link to detailed instructions for building each individual image. See the next
+section for links to documentation on how to deploy the images as services.
 
-```
-git clone https://github.com/Internet2/comanage-registry-docker.git
-cd comanage-registry-docker
-```
+* [COmanage Registry base image](comanage-registry-base/README.md)
+* [COmanage Registry with Basic Authentication](comanage-registry-basic-auth/README.md)
+* [COmanage Registry with Shibboleth SP base image](comanage-registry-shibboleth-sp-base/README.md)
+* [COmanage Registry with Shibboleth SP](comanage-registry-shibboleth-sp/README.md)
+* [COmanage Registry with mod\_auth\_openidc](comanage-registry-mod-auth-openidc/README.md)
 
-* Define the shell variable `COMANAGE_REGISTRY_VERSION` to be the version
-of COmanage Registry you want to deploy. See the
-[COmanage Registry Release History](https://spaces.internet2.edu/display/COmanage/Release+History)
-wiki page for the list of releases. We recommend using the latest release.
+## Deploying Images and Running Services
 
-Here is an example (but please check the wiki page for the latest release number):
+Since COmanage Registry requires a relational database, and because it is often deployed with
+other tools like an LDAP directory, multiple images need to be simultanesouly instantiated
+as containers. Orchestrating multiple containers to create services is easiest using
+tools such as [Docker Compose](https://docs.docker.com/compose/), 
+[Docker Swarm](https://docs.docker.com/engine/swarm/), or 
+[Kubernetes](https://kubernetes.io/).
 
-```
-export COMANAGE_REGISTRY_VERSION=3.1.1
-```
+The images built from Dockerfiles in this repository may be used with any container
+orchestration platform but the documentation demonstrates how to deploy with
+Docker Swarm (the simple evaluation scenario above uses Docker Compose).
 
-* Build a local image for COmanage Registry:
+The following link to detailed instructions for a number of deployment scenarios.
 
-```
-pushd comanage-registry-basic-auth
-sed -e s/%%COMANAGE_REGISTRY_VERSION%%/${COMANAGE_REGISTRY_VERSION}/g Dockerfile.template  > Dockerfile
-docker build -t comanage-registry:${COMANAGE_REGISTRY_VERSION}-basic-auth .
-popd
-```
+* [COmanage Registry using the Shibboleth SP and PostgreSQL database](docs/shibboleth-sp-postgresql.md)
+* [COmanage Registry using the Shibboleth SP and MariaDB database](docs/shibboleth-sp-mariadb.md)
+* [COmanage Registry using mod\_auth\_openidc and PostgreSQL database](docs/mod-auth-openidc-postgresql.md)
+* [Adding an OpenLDAP Directory](docs/adding-openldap.md)
+* [Adding an OpenLDAP proxy server](docs/adding-openldap-proxy.md)
 
-* Build a local image of PostgreSQL for COmanage Registry:
-```
-pushd comanage-registry-postgres
-docker build -t comanage-registry-postgres .
-popd
-```
-* Create a template docker-compose.yml file:
-```
-version: '3.1'
+## All Documentation
 
-services:
+* [COmanage Registry base image](comanage-registry-base/README.md)
+* [COmanage Registry with Basic Authentication](comanage-registry-basic-auth/README.md)
+* [COmanage Registry with Shibboleth SP base image](comanage-registry-shibboleth-sp-base/README.md)
+* [COmanage Registry with Shibboleth SP](comanage-registry-shibboleth-sp/README.md)
+* [COmanage Registry with mod\_auth\_openidc](comanage-registry-mod-auth-openidc/README.md)
 
-    comanage-registry-database:
-        image: comanage-registry-postgres
+* [COmanage Registry using the Shibboleth SP and PostgreSQL database](docs/shibboleth-sp-postgresql.md)
+* [COmanage Registry using the Shibboleth SP and MariaDB database](docs/shibboleth-sp-mariadb.md)
+* [COmanage Registry using mod\_auth\_openidc and PostgreSQL database](docs/mod-auth-openidc-postgresql.md)
+* [Adding an OpenLDAP Directory](docs/adding-openldap.md)
+* [Adding an OpenLDAP proxy server](docs/adding-openldap-proxy.md)
 
-    comanage-registry:
-        image: comanage-registry:COMANAGE_REGISTRY_VERSION-basic-auth
-        ports:
-            - "80:80"
-            - "443:443"
-```
-
-* Use sed to set the COmanage Registry version for the image in the 
-docker-compose.yml file:
-
-```
-sed -i s/COMANAGE_REGISTRY_VERSION/$COMANAGE_REGISTRY_VERSION/ docker-compose.yml
-```
-
-* Start the services:
-```
-docker-compose up -d
-```
-
-* Browse to port 443 on the host, for example `https://localhost/`. You will have to
-  click through the warning from your browser about the self-signed certificate used
-  for HTTPS.
-
-* Click `Login` and when prompted enter `registry.admin` as the username and `password`
-for the password. 
-
-See [Advanced Configuration](docs/advanced-configuration.md) 
-for details on setting a non-default administrator username and password.
-
-* Visit the [COmanage wiki](https://spaces.internet2.edu/display/COmanage/Setting+Up+Your+First+CO)
-to learn how to create your first collaborative organization (CO) and begin using
-the platform.
-
-* To stop the services:
-```
-docker-compose stop
-```
-
-* To remove the containers and networks:
-```
-docker-compose down
-```
-
-### Important Notes
-The instructions above are *not suitable for a production deployment* for two reasons:
-
-1. The deployed services use default and easily guessed passwords.
-2. No data is persisted. When the containers are destroyed so is your data.
-
-## Next Steps
-To evolve your COmanage Registry deployment examine the documentation
-in the [docs directory](docs/README.md) or follow these direct links:
-
-* [Persist data using host-mounted volumes](docs/basic-auth-postgres-persist.md)
-* [Use MariaDB instead of PostgreSQL](docs/basic-auth-mariadb-persist.md)
-* [Add OpenLDAP slapd for provisioning](docs/openldap-slapd.md)
-* [Advanced configuration](docs/advanced-configuration.md)
-* [Complete example recipe for production deployment](docs/shibboleth-sp-postgres-compose.md)
-* [Using Docker service stacks and Docker secrets](docs/mod-auth-oidc-mariadb-stacks.md)
-
-
-
-
-
+* [Environment variable reference](docs/environment-variable.md)
