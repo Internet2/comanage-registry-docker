@@ -65,7 +65,7 @@ MAILMAN_ARCHIVER_FROM = os.environ.get('MAILMAN_HOST_IP', '172.19.199.2')
 
 # Application definition
 
-INSTALLED_APPS = (
+INSTALLED_APPS = [
     'hyperkitty',
     'postorius',
     'django_mailman3',
@@ -81,7 +81,6 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'rest_framework',
     'django_gravatar',
-    'paintstore',
     'compressor',
     'haystack',
     'django_extensions',
@@ -94,7 +93,17 @@ INSTALLED_APPS = (
     'allauth.socialaccount.providers.github',
     'allauth.socialaccount.providers.gitlab',
     'allauth.socialaccount.providers.google',
-)
+]
+
+# Optionally include paintstore, if it was installed with Hyperkitty.
+# TODO: Remove this after a new version of Hyperkitty is released and
+# neither the stable nor the rolling version needs it.
+try:
+    import paintstore
+    INSTALLED_APPS.append('paintstore')
+except ImportError:
+    pass
+
 
 _MIDDLEWARE = (
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -102,7 +111,6 @@ _MIDDLEWARE = (
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
@@ -259,6 +267,7 @@ ACCOUNT_UNIQUE_EMAIL  = True
 
 SOCIALACCOUNT_PROVIDERS = {}
 
+
 # django-compressor
 # https://pypi.python.org/pypi/django_compressor
 #
@@ -377,6 +386,8 @@ Q_CLUSTER = {
     'save_limit': 100,
     'orm': 'default',
 }
+
+POSTORIUS_TEMPLATE_BASE_URL =  os.environ.get('POSTORIUS_TEMPLATE_BASE_URL', 'http://mailman-web:8000')
 
 try:
     from settings_local import *

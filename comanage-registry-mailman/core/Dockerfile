@@ -29,7 +29,7 @@ RUN apt-get update \
         postgresql-client \
         python3-dev \
     && pip install psycopg2 \
-                   mailman==3.1.1 \
+                   mailman==3.2 \
                    mailman-hyperkitty==1.1.0 \
                    pymysql \
     && adduser --system mailman

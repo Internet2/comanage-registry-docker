@@ -1,4 +1,4 @@
-# Copyright (C) 2011-2017 by the Free Software Foundation, Inc.
+# Copyright (C) 2011-2018 by the Free Software Foundation, Inc.
 #
 # This file is part of GNU Mailman.
 #
@@ -196,9 +196,7 @@ class UserAddresses(_AddressBase):
         Add a new address to the user record.
         """
         assert self._user is not None
-
         preferred = None
-
         user_manager = getUtility(IUserManager)
         validator = Validator(email=str,
                               display_name=str,
@@ -207,7 +205,6 @@ class UserAddresses(_AddressBase):
                               _optional=('display_name', 'absorb_existing', 'preferred'))
         try:
             data = validator(request)
-
             # We cannot set the address to be preferred when it is
             # created so remove it from the arguments here and
             # set it below.
