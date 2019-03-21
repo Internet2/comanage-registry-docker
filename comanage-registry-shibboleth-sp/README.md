@@ -21,145 +21,115 @@ limitations under the License.
 
 # COmanage Registry Shibboleth
 
-Intended to build a COmanage Registry image
-using the official PHP 7 with Apache image as the foundation
-and providing the Shibboleth Native SP for Apache HTTP Server
-as the authentication mechanism. 
+Intended to build a COmanage Registry image using the Shibboleth Native SP
+for Apache HTTP Server (Shibboleth) as the authentication mechanism. 
 
-## Build
+## Build Arguments
 
-```
-export COMANAGE_REGISTRY_VERSION=develop
-sed -e s/%%COMANAGE_REGISTRY_VERSION%%/${COMANAGE_REGISTRY_VERSION}/g Dockerfile.template  > Dockerfile
-docker build -t comanage-registry:${COMANAGE_REGISTRY_VERSION}-shibboleth-sp .
-```
-
-You can (and should) use build arguments to bootstrap the first
-platform administrator. The administrator username is the value
-COmanage Registry expects to read from $REMOTE\_USER after
-the administrator authenticates using whichever authentication
-method is provided:
+Building the image requires the following build arguments:
 
 ```
-export COMANAGE_REGISTRY_VERSION=develop
+--build-arg COMANAGE_REGISTRY_VERSION=<version number>
+--build-arg COMANAGE_REGISTRY_BASE_IMAGE_VERSION=<base image version number>
+--build-arg COMANAGE_REGISTRY_SHIBBOLETH_SP_VERSION=<Shibboleth SP version number>
+--build-arg COMANAGE_REGISTRY_SHIBBOLETH_SP_BASE_IMAGE_VERSION=<Shibboleth SP base image version number>
+```
 
-export COMANAGE_REGISTRY_ADMIN_GIVEN_NAME=Karel
-export COMANAGE_REGISTRY_ADMIN_FAMILY_NAME=Novak
-export COMANAGE_REGISTRY_ADMIN_USERNAME=karel.novak@my.org
+## Build Requirements
 
-sed -e s/%%COMANAGE_REGISTRY_VERSION%%/${COMANAGE_REGISTRY_VERSION}/g Dockerfile.template  > Dockerfile
+This image uses a [multi-stage build](https://docs.docker.com/develop/develop-images/multistage-build/).
+It requires that the [COmanage Registry base image](../comanage-registry-base/README.md) 
+and [Shibboleth SP base image](../comanage-registry-shibboleth-sp-base/README.md) be built first.
+
+## Building
+
+```
 docker build \
-  --build-arg COMANAGE_REGISTRY_ADMIN_GIVEN_NAME=${COMANAGE_REGISTRY_ADMIN_GIVEN_NAME} \
-  --build-arg COMANAGE_REGISTRY_ADMIN_FAMILY_NAME=${COMANAGE_REGISTRY_ADMIN_FAMILY_NAME} \
-  --build-arg COMANAGE_REGISTRY_ADMIN_USERNAME=${COMANAGE_REGISTRY_ADMIN_USERNAME} \
-  -t comanage-registry:${COMANAGE_REGISTRY_VERSION}-shibboleth-sp .
-```
-## Run
-
-### Database
-
-COmanage Registry requires a relational database. See the 
-[PostgreSQL example for COmanage Registry](../comanage-registry-postgres/README.md).
-
-### Network
-
-Create a user-defined network bridge with
-
-```
-docker network create --driver=bridge \
-  --subnet=192.168.0.0/16 \
-  --gateway=192.168.0.100 \
-  comanage-registry-internal-network
+  --build-arg COMANAGE_REGISTRY_VERSION=<COmanage Registry version number> \
+  --build-arg COMANAGE_REGISTRY_BASE_IMAGE_VERSION=<base image version number> \
+  --build-arg COMANAGE_REGISTRY_SHIBBOLETH_SP_VERSION=<Shibboleth SP version number> \
+  --build-arg COMANAGE_REGISTRY_SHIBBOLETH_SP_BASE_IMAGE_VERSION=<Shibboleth SP base image version number> \
+  -t comanage-registry:<tag> .
 ```
 
-### COmanage Registry Configuration
-
-Create a directory to hold persistent COmanage Registry configuration and
-other state such as local plugins and other customizations. In that directory
-create a `Config` directory and in it place a `database.php` and `email.php`
-configuration file:
+## Building Example
 
 ```
-mkdir -p /opt/comanage-registry/Config
-
-cat > /opt/comanage-registry/Config/database.php <<"EOF"
-<?php
-
-class DATABASE_CONFIG {
-
-  public $default = array(
-    'datasource' => 'Database/Postgres',
-    'persistent' => false,
-    'host' => 'comanage-registry-database',
-    'login' => 'registry_user',
-    'password' => 'password',
-    'database' => 'registry',
-    'prefix' => 'cm_',
-  );
-
-}
-EOF
-
-cat > /opt/comanage-registry/Config/email.php <<"EOF"
-<?php
-
-class EmailConfig {
-
-  public $default = array(
-    'transport' => 'Smtp',
-    'host' => 'tls://smtp.gmail.com',
-    'port' => 465,
-    'username' => 'account@gmail.com',
-    'password' => 'password'
-  );
-}
-EOF
+export COMANAGE_REGISTRY_VERSION=3.2.1
+export COMANAGE_REGISTRY_BASE_IMAGE_VERSION=1
+export COMANAGE_REGISTRY_SHIBBOLETH_SP_VERSION=3.0.3
+export COMANAGE_REGISTRY_SHIBBOLETH_SP_BASE_IMAGE_VERSION=1
+export COMANAGE_REGISTRY_SHIBBOLETH_SP_IMAGE_VERSION=1
+TAG="${COMANAGE_REGISTRY_VERSION}-shibboleth-sp-${COMANAGE_REGISTRY_SHIBBOLETH_SP_IMAGE_VERSION}"
+docker build \
+  --build-arg COMANAGE_REGISTRY_VERSION=${COMANAGE_REGISTRY_VERSION} \
+  --build-arg COMANAGE_REGISTRY_BASE_IMAGE_VERSION=${COMANAGE_REGISTRY_BASE_IMAGE_VERSION} \
+  --build-arg COMANAGE_REGISTRY_SHIBBOLETH_SP_VERSION=${COMANAGE_REGISTRY_SHIBBOLETH_SP_VERSION} \
+  --build-arg COMANAGE_REGISTRY_SHIBBOLETH_SP_BASE_IMAGE_VERSION=${COMANAGE_REGISTRY_SHIBBOLETH_SP_BASE_IMAGE_VERSION} \
+  -t comanage-registry:$TAG .
 ```
 
-### Shibboleth SP Configuration
+## Volumes and Data Persistence
 
-Mount or COPY Shibboleth SP configuration files into the directory
-`/etc/shibboleth`. A standard set of default files is already present
-in the image.
+See [COmanage Registry Volumes and Data Persistence](../docs/volumes-and-data-persistence.md).
+
+
+## Environment Variables
+
+See the [list of environment variables common to all images](../docs/comanage-registry-common-environment-variables.md)
+including this image.
+
+See also the
+[list of environment variables common to all images using Shibboleth](../docs/comanage-registry-common-shibboleth-environment-variables.md).
+
+## Authentication
+
+This image supports using the Shibboleth Native SP for Apache HTTP Server (Shibboleth) as the
+authentication mechanism. Deployers should configure Shibboleth so that the desired
+asserted user attribute is written into `REMOTE_USER`.
+
+## Ports
+
+The image listens for web traffic on ports 80 and 443. All requests
+on port 80 are redirected to port 443.
+
+## Running
+
+See other documentation in this repository for details on how to orchestrate
+running this image with other images using an orchestration tool like
+Docker Compose, Docker Swarm, or Kubernetes.
+
+To run this image:
 
 ```
-COPY shibboleth2.xml /etc/shibboleth/shibboleth2.xml
-COPY sp-cert.pem /etc/shibboleth/sp-cert.pem
-COPY sp-key.pem /etc/shibboleth/sp-key.pem
+docker run -d \
+  --name comanage-registry \
+  -e COMANAGE_REGISTRY_ADMIN_GIVEN_NAME=Julia \
+  -e COMANAGE_REGISTRY_ADMIN_FAMILY_NAME=Janseen \
+  -e COMANAGE_REGISTRY_ADMIN_USERNAME=julia.janseen@my.org \
+  -e SHIBBOLETH_SP_ENTITY_ID=https://myapp.my.org/shibboleth/sp \
+  -e SHIBBOLETH_SP_METADATA_PROVIDER_XML_FILE=/etc/shibboleth/my-org-metadata.xml \
+  -v /opt/comanage-registry-local:/srv/comanage-registry/local \
+  -v /etc/shibboleth/sp-encrypt-cert.pem:/etc/shibboleth/sp-encrypt-cert.pem \
+  -v /etc/shibboleth/sp-encrypt-key.pem:/etc/shibboleth/sp-encrypt-key.pem \
+  -v /etc/shibboleth/my-org-metadata.xml:/etc/shibboleth/my-org-metadata.xml \
+  -p 80:80 \
+  -p 443:443 \
+  comanage-registry:3.2.1-shibboleth-sp-1
 ```
 
-### Container
+## Logging
 
-```
-docker run -d --name comanage-registry \
-  -v /opt/comanage-registry:/srv/comanage-registry/local \
-  --network comanage-registry-internal-network \
-  -p 80:80 -p 443:443 \
-  comanage-registry:${COMANAGE_REGISTRY_VERSION}-shibboleth-sp
-```
-
-### Logging
-
-Both Apache HTTP Server and COmanage Registry log to the stdout and
+Apache HTTP Server, COmanage Registry, Shibboleth, and supervisord all log to the stdout and
 stderr of the container.
 
-The Shibboleth SP can also log to the stdout and stderr of the container
-by setting the `logger` configuration option in `shibboleth2.xml`.
+## HTTPS Configuration
 
-```
-<SPConfig xmlns="urn:mace:shibboleth:2.0:native:sp:config"
-    xmlns:conf="urn:mace:shibboleth:2.0:native:sp:config"
-    xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"
-    xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol"    
-    xmlns:md="urn:oasis:names:tc:SAML:2.0:metadata"
-    logger="/etc/shibboleth/console.logger"
-    clockSkew="180">
-```
+See the section on environment variables and the `HTTPS_CERT_FILE` and
+`HTTPS_PRIVKEY_FILE` variables.
 
-### HTTPS Configuration
-
-Mount or COPY in an X.509 certificate file (containing the CA signing certificate(s), if any)
-and associated private key file.
+Additionally you may bind mount or COPY in an X.509 certificate file (containing the CA signing certificate(s), if any)
+and associated private key file. For example
 
 ```
 COPY cert.pem /etc/apache2/cert.pem

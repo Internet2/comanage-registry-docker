@@ -53,7 +53,7 @@ function comanage_shibboleth_sp_utils::consume_injected_environment() {
         SHIBBOLETH_SP_SIGNING_CERT
         SHIBBOLETH_SP_SIGNING_PRIVKEY
         SHIBBOLETH_SP_ENCRYPT_CERT
-        SHIBBOLETH_SP_ENCRYPT_KEY
+        SHIBBOLETH_SP_ENCRYPT_PRIVKEY
         SHIBBOLETH_SP_SAMLDS_URL
     )
 

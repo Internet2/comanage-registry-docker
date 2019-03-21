@@ -18,53 +18,108 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 -->
-
 # PostgreSQL for COmanage Registry
 
-A simple example demonstrating how to create an image and container
-based on PostgreSQL to use with COmanage Registry containers. 
+Intended to build a PostgreSQL image for use with COmanage Registry.
 
-## Build
+## Build Arguments
 
-```
-docker build -t comanage-registry-postgres .
-```
+No arguments are required for building the image.
 
-## Run
-
-Create a user-defined network bridge with
+The following arguments may be supplied during the build:
 
 ```
-docker network create --driver=bridge \
-  --subnet=192.168.0.0/16 \
-  --gateway=192.168.0.100 \
-  comanage-registry-internal-network
+--build-arg COMANAGE_REGISTRY_POSTGRES_DATABASE=<name of database to use with COmanage Registry>
+--build-arg COMANAGE_REGISTRY_POSTGRES_USER=<database username>
+--build-arg COMANAGE_REGISTRY_POSTGRES_USER_PASSWORD=<database password>
 ```
 
-and then mount a host directory such as `/tmp/postgres-data`
-to `/var/lib/postgresql/data` inside the container to persist
-data, eg.
+## Building
 
 ```
-docker run -d --name comanage-registry-database \
-  --network comanage-registry-internal-network \
-  -v /tmp/postgres-data:/var/lib/postgresql/data \
-  comanage-registry-postgres
+docker build \
+  -t comanage-registry-postgres:<tag> .
 ```
 
-You can use the following environment variables with the image:
-
-* `POSTGRES_USER`: superuser (default is `postgres`)
-* `POSTGRES_PASSWORD`: password for superuser (no default)
-* `COMANAGE_REGISTRY_POSTGRES_DATABASE`: COmanage Registry database (default is `registry`)
-* `COMANAGE_REGISTRY_POSTGRES_USER`: COmanage Registry database user (default is `registry_user`)
-* `COMANAGE_REGISTRY_POSTGRES_USER_PASSWORD`: password for database user (no default)
-
-For example:
+## Building Example
 
 ```
-docker run -d --name comanage-registry-database \
-  --network comanage-registry-internal-network \
+export COMANAGE_REGISTRY_POSTGRES_IMAGE_VERSION=1
+TAG="${COMANAGE_REGISTRY_POSTGRES_IMAGE_VERSION}"
+docker build \
+  -t comanage-registry-postgres:$TAG .
+```
+
+## Volumes and Data Persistence
+
+You must provide a volume or bind mount that mounts to `/var/lib/postgresql/data`
+inside the container to persist data saved to the relational database.
+
+## Environment Variables
+
+The image supports the environment variables below and the `_FILE`
+[convention](../docs/comanage-registry-common-environment-variables.md):
+
+`POSTGRES_USER`
+
+* Description: superuser
+* Required: yes
+* Default: `postgres`
+* Example: `db_user`
+* Note: Most deployers use the default.
+
+`POSTGRES_PASSWORD`
+
+* Description: password for superuser
+* Required: no
+* Default: none
+* Example: `l7cX28O3mt03y41EndjM`
+* Note: If you do not set a password for the superuser then
+any client with access to the container may connect to the database.
+
+`COMANAGE_REGISTRY_POSTGRES_DATABASE`
+
+* Description: COmanage Registry database
+* Required: yes
+* Default: `registry`
+* Example: `comanage_registry`
+
+`COMANAGE_REGISTRY_POSTGRES_USER`
+
+* Description: COmanage Registry database user
+* Required: yes
+* Default: `registry_user`
+* Example: `comanage_registry_user`
+
+`COMANAGE_REGISTRY_POSTGRES_USER_PASSWORD`
+
+* Description: password for database user
+* Required: no
+* Default: none
+* Example: `5Aw9SzS4xqYi7daHw57c`
+* Note: If you do not set a password for the COmanage Registry user then
+any client with access to the container may connect to the database.
+
+## Authentication
+
+If you do not set a password for the superuser or the COmanage Registry user then
+any client with access to the container may connect to the database.
+
+## Ports
+
+The image listens for traffic on port 5432.
+
+## Running
+
+See other documentation in this repository for details on how to orchestrate
+running this image with other images using an orchestration tool like
+Docker Compose, Docker Swarm, or Kubernetes.
+
+To run this image:
+
+```
+docker run -d \
+  --name comanage-registry-database \
   -v /tmp/postgres-data:/var/lib/postgresql/data \
   -e POSTGRES_USER=postgres \
   -e POSTGRES_PASSWORD=superuser_password \
@@ -74,20 +129,6 @@ docker run -d --name comanage-registry-database \
   comanage-registry-postgres
 ```
 
-You may also set environment variables that point to files from which to read
-the same details, for example
+## Logging
 
-```
-docker run -d --name comanage-registry-database \
-  --network comanage-registry-internal-network \
-  -v /tmp/postgres-data:/var/lib/postgresql/data \
-  -e POSTGRES_USER_FILE=/run/secrets/postgres_user \
-  -e POSTGRES_PASSWORD_FILE=/run/secrets/postgres_password \
-  -e COMANAGE_REGISTRY_POSTGRES_DATABASE_FILE=/run/secrets/comanage_registry_postgres_database \
-  -e COMANAGE_REGISTRY_POSTGRES_USER_FILE=/run/secrets/comanage_registry_postgres_user \
-  -e COMANAGE_REGISTRY_POSTGRES_USER_PASSWORD_FILE=/run/secrets/comanage_registry_postgres_user_password \
-  comanage-registry-postgres
-```
-
-If you do not set a password for the superuser or the COmanage Registry user then
-any client with access to the container may connect to the database.
+PostgreSQL logs to the stdout and stderr of the container.

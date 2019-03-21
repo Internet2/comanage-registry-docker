@@ -19,154 +19,131 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 
-# COmanage Registry mod\_auth\_openidc
+# COmanage Registry mod_auth_openidc
 
-Intended to build a COmanage Registry image
-using the official PHP 7 with Apache image as the foundation
-and providing mod\_auth\_openidc for Apache HTTP Server
-as the authentication mechanism. 
+Intended to build a COmanage Registry image using the mod_auth_openidc
+module for Apache HTTP Server as the authentication mechanism. 
 
-## Build
+## Build Arguments
 
-```
-export COMANAGE_REGISTRY_VERSION=develop
-sed -e s/%%COMANAGE_REGISTRY_VERSION%%/${COMANAGE_REGISTRY_VERSION}/g Dockerfile.template  > Dockerfile
-docker build -t comanage-registry:${COMANAGE_REGISTRY_VERSION}-mod-auth-openidc .
-```
-
-You can (and should) use build arguments to bootstrap the first
-platform administrator. The administrator username is the value
-COmanage Registry expects to read from $REMOTE\_USER after
-the administrator authenticates using whichever authentication
-method is provided:
+Building the image requires the following build arguments:
 
 ```
-export COMANAGE_REGISTRY_VERSION=develop
+--build-arg COMANAGE_REGISTRY_VERSION=<version number>
+--build-arg COMANAGE_REGISTRY_BASE_IMAGE_VERSION=<base image version number>
+```
 
-export COMANAGE_REGISTRY_ADMIN_GIVEN_NAME=Karel
-export COMANAGE_REGISTRY_ADMIN_FAMILY_NAME=Novak
-export COMANAGE_REGISTRY_ADMIN_USERNAME=karel.novak@my.org
+Additionally the following build argument may be specified:
 
-sed -e s/%%COMANAGE_REGISTRY_VERSION%%/${COMANAGE_REGISTRY_VERSION}/g Dockerfile.template  > Dockerfile
+```
+--build-arg MOD_AUTH_OPENIDC_SRC_URL=<URL for mod_auth_openidc source tarball>
+```
+
+## Build Requirements
+
+This image uses a [multi-stage build](https://docs.docker.com/develop/develop-images/multistage-build/).
+It requires that the [COmanage Registry base image](../comanage-registry-base/README.md) 
+be built first.
+
+## Building
+
+```
 docker build \
-  --build-arg COMANAGE_REGISTRY_ADMIN_GIVEN_NAME=${COMANAGE_REGISTRY_ADMIN_GIVEN_NAME} \
-  --build-arg COMANAGE_REGISTRY_ADMIN_FAMILY_NAME=${COMANAGE_REGISTRY_ADMIN_FAMILY_NAME} \
-  --build-arg COMANAGE_REGISTRY_ADMIN_USERNAME=${COMANAGE_REGISTRY_ADMIN_USERNAME} \
-  -t comanage-registry:${COMANAGE_REGISTRY_VERSION}-mod-auth-openidc .
-```
-## Run
-
-### Database
-
-COmanage Registry requires a relational database. See the 
-[PostgreSQL example for COmanage Registry](../comanage-registry-postgres/README.md).
-
-### Network
-
-Create a user-defined network bridge with
-
-```
-docker network create --driver=bridge \
-  --subnet=192.168.0.0/16 \
-  --gateway=192.168.0.100 \
-  comanage-registry-internal-network
+  --build-arg COMANAGE_REGISTRY_VERSION=<COmanage Registry version number> \
+  --build-arg COMANAGE_REGISTRY_BASE_IMAGE_VERSION=<base image version number> \
+  -t comanage-registry:<tag> .
 ```
 
-### COmanage Registry Configuration
-
-Create a directory to hold persistent COmanage Registry configuration and
-other state such as local plugins and other customizations. In that directory
-create a `Config` directory and in it place a `database.php` and `email.php`
-configuration file:
+## Building Example
 
 ```
-mkdir -p /opt/comanage-registry/Config
+export COMANAGE_REGISTRY_VERSION=3.2.1
+export COMANAGE_REGISTRY_BASE_IMAGE_VERSION=1
+export COMANAGE_REGISTRY_MOD_AUTH_OPENIDC_IMAGE_VERSION=1
+TAG="${COMANAGE_REGISTRY_VERSION}-mod-auth-openidc-${COMANAGE_REGISTRY_MOD_AUTH_OPENIDC_IMAGE_VERSION}"
 
-cat > /opt/comanage-registry/Config/database.php <<"EOF"
-<?php
-
-class DATABASE_CONFIG {
-
-  public $default = array(
-    'datasource' => 'Database/Postgres',
-    'persistent' => false,
-    'host' => 'comanage-registry-database',
-    'login' => 'registry_user',
-    'password' => 'password',
-    'database' => 'registry',
-    'prefix' => 'cm_',
-  );
-
-}
-EOF
-
-cat > /opt/comanage-registry/Config/email.php <<"EOF"
-<?php
-
-class EmailConfig {
-
-  public $default = array(
-    'transport' => 'Smtp',
-    'host' => 'tls://smtp.gmail.com',
-    'port' => 465,
-    'username' => 'account@gmail.com',
-    'password' => 'password'
-  );
-}
-EOF
+docker build \
+  --build-arg COMANAGE_REGISTRY_VERSION=${COMANAGE_REGISTRY_VERSION} \
+  --build-arg COMANAGE_REGISTRY_BASE_IMAGE_VERSION=${COMANAGE_REGISTRY_BASE_IMAGE_VERSION} \
+  -t comanage-registry:$TAG .
 ```
 
-### mod\_auth\_openidc Configuration
+## Volumes and Data Persistence
 
-Mount or COPY mod\_auth\_openidc configuration into the file
-`/etc/apache2/conf-enabled/mod-auth-openidc.conf`. The configuration
-will usually include
+See [COmanage Registry Volumes and Data Persistence](../docs/volumes-and-data-persistence.md).
+
+
+## Environment Variables
+
+See the [list of environment variables common to all images](../docs/comanage-registry-common-environment-variables.md)
+including this image.
+
+## Authentication
+
+This image supports using the mod_auth_openidc module for Apache HTTP Server as the
+authentication mechanism. Deployers should bind mount or COPY in the Apache HTTP Server
+configuration file `/etc/apache2/conf-enabled/mod-auth-openidc.conf` that contains
+the necessary OIDC client, secret, redirect URI, and other mod_auth_openidc
+integration details.
+
+An example `mod-auth-openidc.conf` configuration is
 
 ```
-OIDCProviderMetadataURL
-OIDCRemoteUserClaim
-OIDCClientID
-OIDCClientSecret
-OIDCScope
-OIDCCryptoPassphrase
-OIDCRedirectURI
-```
+OIDCProviderMetadataURL https://cilogon.org/.well-known/openid-configuration
+OIDCRemoteUserClaim sub
 
-It should also include a `<Location>` directive to identify the
-`OIDCRedirectURI`.
+OIDCClientID cilogon:/client_id/3815e327237181f2ca55e39c305a5706
+OIDCClientSecret w5TmBFgrLEZVl7P3VYw5
 
-```
+OIDCScope "openid email profile org.cilogon.userinfo"
+OIDCCryptoPassphrase X7iAVpP9c3vr3WTsxrd7
+
+OIDCRedirectURI https://registry.cilogon.org/secure/redirect
+
 <Location /secure/redirect>
   AuthType openid-connect
   Require valid-user
 </Location>
 ```
 
-You may also want to enable logout. For example
+## Ports
+
+The image listens for web traffic on ports 80 and 443. All requests
+on port 80 are redirected to port 443.
+
+## Running
+
+See other documentation in this repository for details on how to orchestrate
+running this image with other images using an orchestration tool like
+Docker Compose, Docker Swarm, or Kubernetes.
+
+To run this image:
 
 ```
-Redirect /registry/users/logout https://<myserver>/secure/redirect?logout=https%3A%2F%2F<myserver>%2Fregistry%2F
+docker run -d \
+  --name comanage-registry \
+  -e COMANAGE_REGISTRY_ADMIN_GIVEN_NAME=Julia \
+  -e COMANAGE_REGISTRY_ADMIN_FAMILY_NAME=Janseen \
+  -e COMANAGE_REGISTRY_ADMIN_USERNAME=http://cilogon.org/serverA/users/22981
+  -v /opt/comanage-registry-local:/srv/comanage-registry/local \
+  -v mod-auth-openidc.conf:/etc/apache2/conf-enabled/mod-auth-openidc.conf \
+  -p 80:80 \
+  -p 443:443 \
+  comanage-registry:3.2.1-mod-auth-openidc-1
 ```
 
-### Container
+## Logging
 
-```
-docker run -d --name comanage-registry \
-  -v /opt/comanage-registry:/srv/comanage-registry/local \
-  --network comanage-registry-internal-network \
-  -p 80:80 -p 443:443 \
-  comanage-registry:${COMANAGE_REGISTRY_VERSION}-mod-auth-openidc
-```
-
-### Logging
-
-Both Apache HTTP Server and COmanage Registry log to the stdout and
+Apache HTTP Server and COmanage Registry log to the stdout and
 stderr of the container.
 
-### HTTPS Configuration
+## HTTPS Configuration
 
-Mount or COPY in an X.509 certificate file (containing the CA signing certificate(s), if any)
-and associated private key file.
+See the section on environment variables and the `HTTPS_CERT_FILE` and
+`HTTPS_PRIVKEY_FILE` variables.
+
+Additionally you may bind mount or COPY in an X.509 certificate file (containing the CA signing certificate(s), if any)
+and associated private key file. For example
 
 ```
 COPY cert.pem /etc/apache2/cert.pem

@@ -38,20 +38,22 @@ Shibboleth SP, and mod\_auth\_openidc.
 
 Building the image requires the following build argument:
 
-* ```--build-arg COMANAGE_REGISTRY_VERSION=<version number>```
+```
+--build-arg COMANAGE_REGISTRY_VERSION=<COmanage Registry version number>
+```
 
 ## Building
 
 ```
 docker build \
-    --build-arg COMANAGE_REGISTRY_VERSION=<version number> \
+    --build-arg COMANAGE_REGISTRY_VERSION=<COmanage Registry version number> \
     -t comanage-registry-base:<tag> .
 ```
 
-## Example
+## Building Example
 
 ```
-export COMANAGE_REGISTRY_VERSION=3.2.0
+export COMANAGE_REGISTRY_VERSION=3.2.1
 export COMANAGE_REGISTRY_BASE_IMAGE_VERSION=1
 TAG="${COMANAGE_REGISTRY_VERSION}-${COMANAGE_REGISTRY_BASE_IMAGE_VERSION}"
 docker build \

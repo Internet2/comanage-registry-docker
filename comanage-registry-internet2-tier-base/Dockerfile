@@ -18,7 +18,7 @@
 # limitations under the License.
 FROM centos:centos7 AS php-build
 
-ARG PHP_VERSION=7.3.1
+ARG PHP_VERSION=7.3.2
 ARG PHP_SRC_URL=https://github.com/php/php-src/archive/php-${PHP_VERSION}.tar.gz
 
 RUN yum -y install epel-release \

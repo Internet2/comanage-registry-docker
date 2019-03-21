@@ -84,6 +84,9 @@ function comanage_utils::consume_injected_environment() {
     local injectable_config_vars
 
     injectable_config_vars=( 
+        COMANAGE_REGISTRY_ADMIN_GIVEN_NAME
+        COMANAGE_REGISTRY_ADMIN_FAMILY_NAME
+        COMANAGE_REGISTRY_ADMIN_USERNAME
         COMANAGE_REGISTRY_DATASOURCE
         COMANAGE_REGISTRY_DATABASE
         COMANAGE_REGISTRY_DATABASE_HOST

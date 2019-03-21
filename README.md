@@ -23,7 +23,8 @@ limitations under the License.
 
 This repository contains Dockerfiles, documenation, and other files necessary to
 build and deploy a Dockerized version of
-[COmanage Registry](https://spaces.internet2.edu/display/COmanage/Home).
+[COmanage Registry](https://spaces.internet2.edu/display/COmanage/Home), as well as
+other infrastructure commonly deployed with COmanage Registry.
 
 Since COmanage Registry is a web application that requires a relational database
 and an authentication mechanism such as 
@@ -48,6 +49,14 @@ section for links to documentation on how to deploy the images as services.
 * [COmanage Registry with Shibboleth SP base image](comanage-registry-shibboleth-sp-base/README.md)
 * [COmanage Registry with Shibboleth SP](comanage-registry-shibboleth-sp/README.md)
 * [COmanage Registry with mod\_auth\_openidc](comanage-registry-mod-auth-openidc/README.md)
+* [COmanage Registry for Internet2 TIER base](comanage-registry-internet2-tier-base/README.md)
+* [COmanage Registry for Internet2 TIER](comanage-registry-internet2-tier/README.md)
+
+* [PostgreSQL for COmanage Registry](comanage-registry-postgres/README.md)
+
+* [OpenLDAP slapd base for COmanage Registry](comanage-registry-slapd-base/README.md)
+* [OpenLDAP slapd for COmanage Registry](comanage-registry-slapd/README.md)
+* [OpenLDAP slapd proxy for COmanage Registry](comanage-registry-slapd-proxy/README.md)
 
 ## Deploying Images and Running Services
 
@@ -66,7 +75,10 @@ The following link to detailed instructions for a number of deployment scenarios
 
 * [COmanage Registry using the Shibboleth SP and PostgreSQL database](docs/shibboleth-sp-postgresql.md)
 * [COmanage Registry using the Shibboleth SP and MariaDB database](docs/shibboleth-sp-mariadb.md)
-* [COmanage Registry using mod\_auth\_openidc and PostgreSQL database](docs/mod-auth-openidc-postgresql.md)
+* [COmanage Registry using mod\_auth\_openidc and database](docs/mod-auth-openidc-postgresql.md)
+* [COmanage Registry using the Internet2 TIER image](docs/comanage-registry-internet2-tier.md)
+
+
 * [Adding an OpenLDAP Directory](docs/adding-openldap.md)
 * [Adding an OpenLDAP proxy server](docs/adding-openldap-proxy.md)
 
@@ -78,10 +90,11 @@ The following link to detailed instructions for a number of deployment scenarios
 * [COmanage Registry with Shibboleth SP](comanage-registry-shibboleth-sp/README.md)
 * [COmanage Registry with mod\_auth\_openidc](comanage-registry-mod-auth-openidc/README.md)
 
+* [COmanage Registry environment variable reference](docs/comanage-registry-common-environment-variables.md)
+
 * [COmanage Registry using the Shibboleth SP and PostgreSQL database](docs/shibboleth-sp-postgresql.md)
 * [COmanage Registry using the Shibboleth SP and MariaDB database](docs/shibboleth-sp-mariadb.md)
 * [COmanage Registry using mod\_auth\_openidc and PostgreSQL database](docs/mod-auth-openidc-postgresql.md)
 * [Adding an OpenLDAP Directory](docs/adding-openldap.md)
 * [Adding an OpenLDAP proxy server](docs/adding-openldap-proxy.md)
 
-* [Environment variable reference](docs/environment-variable.md)
