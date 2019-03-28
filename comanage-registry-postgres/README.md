@@ -132,3 +132,48 @@ docker run -d \
 ## Logging
 
 PostgreSQL logs to the stdout and stderr of the container.
+
+## Connecting
+
+After breaking into the container you may connect to the
+COmanage Registry database as the COmanage Registry database
+user by running
+
+```
+psql -h 127.0.0.1 ${COMANAGE_REGISTRY_POSTGRES_DATABASE} ${COMANAGE_REGISTRY_POSTGRES_USER}
+```
+
+For example
+
+```
+# psql -h 127.0.0.1 registry registry_user
+Password for user registry_user: 
+psql (9.6.12)
+Type "help" for help.
+
+registry=>
+```
+
+## Backups
+
+A common strategy for backing up the database is to run another temporary
+container that executes the `pg_dump` command. You need to be sure that the
+temporary container and the database container use the same network.
+
+An example is
+
+```
+docker run \
+    -it \
+    --rm \
+    --network temp_default \
+    comanage-registry-postgres \
+    pg_dump \
+        -h comanage-registry-database \
+        -U registry_user \
+        registry
+```
+
+The output from the `pg_dump` command is sent to the stdout of the temporary
+container and may be redirected to a file.
+
