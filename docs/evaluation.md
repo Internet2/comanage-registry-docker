@@ -53,7 +53,7 @@ export COMANAGE_REGISTRY_VERSION=3.2.1
 pushd comanage-registry-base
 docker build \
     --build-arg COMANAGE_REGISTRY_VERSION=${COMANAGE_REGISTRY_VERSION} \
-    -t comanage-registry-base:1 .
+    -t comanage-registry-base:${COMANAGE_REGISTRY_VERSION}-1 .
 popd
 ```
 
@@ -75,7 +75,7 @@ docker build -t comanage-registry-postgres .
 popd
 ```
 
-* Create a template docker-compose.yml file:
+* Create a docker-compose.yml file:
 
 ```
 version: '3.1'
@@ -86,17 +86,10 @@ services:
         image: comanage-registry-postgres
 
     comanage-registry:
-        image: comanage-registry:COMANAGE_REGISTRY_VERSION-basic-auth
+        image: "comanage-registry:${COMANAGE_REGISTRY_VERSION}-basic-auth"
         ports:
             - "80:80"
             - "443:443"
-```
-
-* Use sed to set the COmanage Registry version for the image in the 
-docker-compose.yml file:
-
-```
-sed -i s/COMANAGE_REGISTRY_VERSION/$COMANAGE_REGISTRY_VERSION/ docker-compose.yml
 ```
 
 * Start the services:
