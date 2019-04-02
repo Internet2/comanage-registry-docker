@@ -96,7 +96,7 @@ RUN wget -O xmltooling.tar.gz "${XMLTOOLING_URL}" \
       && cd .. \
       && rm -r src 
 
-ARG OPENSAMLC_URL=http://shibboleth.net/downloads/c++-opensaml/latest/opensaml-3.0.0.tar.gz
+ARG OPENSAMLC_URL=http://shibboleth.net/downloads/c++-opensaml/3.0.1/opensaml-3.0.1.tar.gz
 
 RUN wget -O opensamlc.tar.gz "${OPENSAMLC_URL}" \
       && mkdir -p src \
