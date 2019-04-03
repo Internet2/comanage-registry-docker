@@ -79,7 +79,7 @@ services:
         volumes:
             - /srv/docker/mailman:/opt/mailman
         environment:
-            - POSTFIX_MYHOSTNAME=lists-dev.sphericalcowgroup.com
+            - POSTFIX_MYHOSTNAME=
             - POSTFIX_MYNETWORKS=!10.255.0.0/16 10.1.0.0/24
         ports:
             - target: 25
