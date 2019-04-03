@@ -160,6 +160,8 @@ then
     docker tag \
         comanage-registry-base:${TAG} \
         ${DOCKER_REGISTRY}/comanage-registry-base:${TAG}
+    docker push \
+        ${DOCKER_REGISTRY}/comanage-registry-base:${TAG}
 fi
 popd
 
@@ -174,6 +176,8 @@ then
     docker tag \
         comanage-registry:$TAG \
         ${DOCKER_REGISTRY}/comanage-registry:$TAG
+    docker push \
+        ${DOCKER_REGISTRY}/comanage-registry:$TAG
 fi
 popd
 
@@ -185,6 +189,8 @@ if [[ -n "${DOCKER_REGISTRY}" ]];
 then
     docker tag \
         comanage-registry-shibboleth-sp-base:$TAG \
+        ${DOCKER_REGISTRY}/comanage-registry-shibboleth-sp-base:$TAG
+    docker push \
         ${DOCKER_REGISTRY}/comanage-registry-shibboleth-sp-base:$TAG
 fi
 popd
@@ -202,6 +208,8 @@ then
     docker tag \
         comanage-registry:$TAG \
         ${DOCKER_REGISTRY}/comanage-registry:$TAG
+    docker push \
+        ${DOCKER_REGISTRY}/comanage-registry:$TAG
 fi
 popd
 
@@ -216,6 +224,8 @@ then
     docker tag \
         comanage-registry:$TAG \
         ${DOCKER_REGISTRY}/comanage-registry:$TAG
+    docker push \
+        ${DOCKER_REGISTRY}/comanage-registry:$TAG
 fi
 popd
 
@@ -227,6 +237,8 @@ if [[ -n "${DOCKER_REGISTRY}" ]];
 then
     docker tag \
         comanage-registry-internet2-tier-base:$TAG \
+        ${DOCKER_REGISTRY}/comanage-registry-internet2-tier-base:$TAG
+    docker push \
         ${DOCKER_REGISTRY}/comanage-registry-internet2-tier-base:$TAG
 fi
 popd
@@ -243,6 +255,8 @@ then
     docker tag \
         comanage-registry:$TAG \
         ${DOCKER_REGISTRY}/comanage-registry:$TAG
+    docker push \
+        ${DOCKER_REGISTRY}/comanage-registry:$TAG
 fi
 popd
 
@@ -255,6 +269,8 @@ then
     docker tag \
         comanage-registry-postgres:${TAG} \
         ${DOCKER_REGISTRY}/comanage-registry-postgres:${TAG}
+    docker push \
+        ${DOCKER_REGISTRY}/comanage-registry-postgres:${TAG}
 fi
 popd
 
@@ -266,6 +282,8 @@ if [[ -n "${DOCKER_REGISTRY}" ]];
 then
     docker tag \
         comanage-registry-slapd-base:${TAG} \
+        ${DOCKER_REGISTRY}/comanage-registry-slapd-base:${TAG}
+    docker push \
         ${DOCKER_REGISTRY}/comanage-registry-slapd-base:${TAG}
 fi
 popd
@@ -280,6 +298,8 @@ then
     docker tag \
         comanage-registry-slapd:${TAG} \
         ${DOCKER_REGISTRY}/comanage-registry-slapd:${TAG}
+    docker push \
+        ${DOCKER_REGISTRY}/comanage-registry-slapd:${TAG}
 fi
 popd
 
@@ -292,6 +312,8 @@ if [[ -n "${DOCKER_REGISTRY}" ]];
 then
     docker tag \
         comanage-registry-slapd-proxy:${TAG} \
+        ${DOCKER_REGISTRY}/comanage-registry-slapd-proxy:${TAG}
+    docker push \
         ${DOCKER_REGISTRY}/comanage-registry-slapd-proxy:${TAG}
 fi
 popd
