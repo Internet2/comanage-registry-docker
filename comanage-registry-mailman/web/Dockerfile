@@ -44,11 +44,16 @@ RUN apt-get update \
         xapian-haystack \
     && adduser --system --no-create-home --group mailman
 
+COPY django-mail-header /tmp/django-mail-header
+RUN pip install /tmp/django-mail-header \
+    && rm -rf /tmp/django-mail-header
+
 # Add needed files for uwsgi server + settings for django
 COPY mailman-web /opt/mailman-web
 
-# Overlay customized template for Postorius login
-#COPY login.html /usr/local/lib/python2.7/site-packages/django_mailman3/templates/account/
+# Overlay modified templates
+COPY postorius.base.html /usr/local/lib/python3.6/site-packages/postorius/templates/postorius/base.html
+COPY hyperkitty.base.html /usr/local/lib/python3.6/site-packages/hyperkitty/templates/hyperkitty/base.html
 
 RUN chown -R mailman:mailman /opt/mailman-web/ \
     && chmod u+x /opt/mailman-web/manage.py

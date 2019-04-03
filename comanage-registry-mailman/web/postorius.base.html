@@ -1,0 +1,123 @@
+{% load i18n %}
+{% load staticfiles %}
+{% load gravatar %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block head_title %}{{ site_name }}{% endblock %}</title>
+    <link rel="shortcut icon" href="{% static 'postorius/img/favicon.ico' %}">
+    <link rel="stylesheet" href="{% static 'postorius/libs/bootstrap/css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'django-mailman3/css/main.css' %}">
+    <link rel="stylesheet" href="{% static 'postorius/css/style.css' %}">
+    {% block additionalcss %}{% endblock %}
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="{% static 'postorius/libs/html5shiv/html5shiv.min.js' %}"></script>
+      <script src="{% static 'postorius/libs/respond/respond.min.js' %}"></script>
+    <![endif]-->
+</head>
+<body>
+
+    <nav class="navbar navbar-default">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#header-nav" aria-expanded="false">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="{% url 'list_index' %}"><span><img src="{% static 'postorius/img/mailman_logo_small_trans.png' %}" alt="{% trans 'Mailman logo' %}"/> Postorius</span></a>
+            </div>
+            <div class="collapse navbar-collapse" id="header-nav">
+                <ul class="nav navbar-nav">
+                    <li><a href="{% url 'list_index' %}">
+                        <span class="glyphicon glyphicon-envelope"></span>
+                        {% trans 'Lists' %}
+                    </a></li>
+                    {% if user.is_superuser %}
+                        <li><a href="{% url 'domain_index' %}">
+                            <span class="glyphicon glyphicon-globe"></span>
+                            {% trans 'Domains' %}
+                        </a></li>
+                        <li>
+                            <a href="{% url 'system_information' %}">
+                                <span class="glyphicon glyphicon-list-alt"></span>
+                                {% trans 'System Information' %}
+                            </a>
+                        </li>
+                    {% endif %}
+                    {% if 'hyperkitty' in INSTALLED_APPS %}
+                        <li><a href="{% url 'hk_root' %}">
+                            <span class="glyphicon glyphicon-comment"></span>
+                            {% trans 'Archives' %}
+                        </a></li>
+                    {% endif %}
+                </ul>
+                <ul class="nav navbar-nav navbar-right">
+                    {% if user.is_authenticated %}
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown"
+                               role="button" aria-haspopup="true" aria-expanded="false">
+                                {% gravatar user.email 20 %}
+                                {{ user.username|truncatechars:"35" }}
+                                <span class="caret"></span>
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a href="{% url 'ps_user_profile' %}">
+                                    <span class="glyphicon glyphicon-cog"></span>
+                                    {% trans 'Mailman settings' %}
+                                </a></li>
+                                {% if 'hyperkitty' in INSTALLED_APPS %}
+                                <li><a href="{% url 'hk_user_profile' %}">
+                                <span class="glyphicon glyphicon-comment"></span>
+                                    {% trans 'Posting activity' %}
+                                </a></li>
+                                {% endif %}
+                            </ul>
+                        </li>
+                    {% else %}
+                        <li><a href="{% url LOGIN_URL %}?next={{ next|default:request.path|urlencode }}">
+                            <span class="glyphicon glyphicon-log-in"></span>
+                            {% trans 'Login' %}
+                        </a></li>
+                        <li><a href="{% url 'account_signup' %}?next={{next|default:request.path|urlencode}}">
+                            <span class="glyphicon glyphicon-plus-sign"></span>
+                            {% trans 'Sign Up' %}
+                        </a></li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container" role="main">
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+        {% block content %}{% endblock content %}
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            <p class="text-center">
+                <a href="https://postorius.readthedocs.org">{% trans 'Postorius Documentation' %}</a>
+                &bull;
+                <a href="http://list.org">GNU Mailman</a>
+                &bull;
+                {% trans 'Postorius Version' %} {{ POSTORIUS_VERSION }}
+            </p>
+        </div>
+    </footer>
+
+    <script src="{% static 'postorius/libs/jquery/jquery-1.11.3.min.js' %}"></script>
+    <script src="{% static 'postorius/libs/bootstrap/js/bootstrap.min.js' %}"></script>
+    <script src="{% static 'django-mailman3/js/main.js' %}"></script>
+    <script src="{% static 'postorius/js/script.js' %}"></script>
+    {% block additionaljs %}{% endblock %}
+</body>
+</html>

@@ -37,7 +37,7 @@ deployment. The suite of services include:
 
 1. **postfix**: MTA needed for sending and receiving mail.
 
-1. **nginx**: Web proxy for GNU Mailman 3 REST and web interface.
+1. **apache**: Apache HTTP Server with Shibboleth SP as a web proxy for GNU Mailman 3 REST and web interface.
 
 ## How To
 
@@ -59,15 +59,15 @@ cd comanage-registry-docker
 
 ```
 pushd comanage-registry-mailman/core
-docker build -t sphericalcowgroup/mailman-core:0.1.7 .
+docker build -t sphericalcowgroup/mailman-core:0.2.1 .
 popd
 
 pushd comanage-registry-mailman/web
-docker build -t sphericalcowgroup/mailman-web:0.1.7 .
+docker build -t sphericalcowgroup/mailman-web:0.2.1 .
 popd
 
-pushd comanage-registry-mailman/nginx
-docker build -t sphericalcowgroup/mailman-core-nginx .
+pushd comanage-registry-mailman/apache-shib
+docker build -t sphericalcowgroup/mailman-core-apache-shib .
 popd
 
 pushd comanage-registry-mailman/postfix
@@ -87,16 +87,10 @@ to substitute your own secrets and do not use the examples below):
 
   * A password for the GNU Mailman 3 REST user, eg. `K6gfcC9uHQMXr448Kmdi`.
 
-  * An X.509 certificate for HTTPS for Nginx. The server certificate and any subordinate
+  * An X.509 certificate for HTTPS for Apache HTTP Server (Apache). The server certificate and any subordinate
 CA signing certificates (except for the trust root) should be in a single file, eg. `fullchain.pem`.
 
   * The associated private key for the X.509 HTTPS certificate, eg. `privkey.pem`.
-
-  * A DH parameters file for Nginx. You can generate one by doing
-
-```
-openssl dhparam -out dhparam.pem 2048
-```
 
 * Create the directory structure on the Docker engine hosts needed for the services 
 to save local state, eg.
@@ -105,7 +99,7 @@ to save local state, eg.
 mkdir -p /opt/mailman/core
 mkdir -p /opt/mailman/web
 mkdir -p /opt/mailman/database
-mkdir -p /opt/mailman/nginx
+mkdir -p /opt/mailman/shib
 ```
 
 * If you are using Docker Compose to deploy the service stack copy the file
@@ -141,9 +135,8 @@ echo "HbTKLdrhRxUX96f5bD2g" | docker secret create hyperkitty_api_key -
 echo "K6gfcC9uHQMXr448Kmdi" | docker secret create mailman_rest_password -
 echo "fPe7d9e0PKF8ryySOow0" | docker secret create mailman_web_secret_key -
 echo "gECPnaqXVID80TlRS5ZG" | docker secret create postgres_password -
-docker secret create nginx_https_cert_file fullchain.pem
-docker secret create nginx_https_key_file privkey.pem
-docker secret create nginx_dh_param_file dhparam.pem
+docker secret create https_cert_file fullchain.pem
+docker secret create https_key_file privkey.pem
 ```
 
 Additionally you MUST also make at least the following changes to the stack compose file `mailman-stack.yml`:
@@ -165,47 +158,40 @@ docker stack deploy --compose-file mailman-stack.yml mailman
 ```
 
 * It can take as long as 30 seconds for the GNU Mailman 3 core service to be ready. The other
-services wait until detecting that core is ready. Monitor the `nginx` service with
+services wait until detecting that core is ready. Monitor the `apache` service with
 
 ```
-docker-compose logs -f --tail=100 nginx
+docker-compose logs -f --tail=100 apache
 ```
 
 or
 
 ```
-docker service logs --tail=100 -f mailman_nginx
+docker service logs --tail=100 -f mailman_apache
 ```
 
-until Nginx is ready. You should see something like
+until Apache is ready. You should see something like
 
 ```
-mailman-nginx   | Waiting for Mailman core container...
-mailman-nginx   | Waiting for Mailman core container...
-mailman-nginx   | Waiting for Mailman core container...
-mailman-nginx   | Waiting for Mailman core container...
-mailman-nginx   | 2018/04/23 18:07:27 [notice] 1#1: using the "epoll" event method
-mailman-nginx   | 2018/04/23 18:07:27 [notice] 1#1: nginx/1.10.3
-mailman-nginx   | 2018/04/23 18:07:27 [notice] 1#1: OS: Linux 4.9.0-6-amd64
-mailman-nginx   | 2018/04/23 18:07:27 [notice] 1#1: getrlimit(RLIMIT_NOFILE): 1048576:1048576
-mailman-nginx   | 2018/04/23 18:07:27 [notice] 1#1: start worker processes
-mailman-nginx   | 2018/04/23 18:07:27 [notice] 1#1: start worker process 48
+2019-04-03 12:27:55,389 CRIT Set uid to user 0
+2019-04-03 12:27:55,391 INFO supervisord started with pid 1
+2019-04-03 12:27:56,394 INFO spawned: 'shibd' with pid 8
+2019-04-03 12:27:56,399 INFO spawned: 'apache2' with pid 9
+Waiting for Mailman core container...
+2019-04-03 12:27:57,491 INFO success: shibd entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2019-04-03 12:27:57,492 INFO success: apache2 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+Waiting for Mailman core container...
+Waiting for Mailman core container...
+Waiting for Mailman core container...
+Waiting for Mailman web container...
+Waiting for Mailman web container...
+Waiting for Mailman web container...
+[Wed Apr 03 13:48:41.263252 2019] [mpm_event:notice] [pid 9:tid 140569797922880] AH00489: Apache/2.4.38 (Unix) OpenSSL/1.1.0j configured -- resuming normal operations
+[Wed Apr 03 13:48:41.284857 2019] [core:notice] [pid 9:tid 140569797922880] AH00094: Command line: 'httpd -D FOREGROUND'
 ```
 
-* Browse to port 443 on the host. 
-
-* Click `Login` and then `Forgot Password?`. Enter the email address you injected as the first
-Mailman 3 administrator and then click `Reset My Password`.
-
-* You will receive an email at that administrator password with a link. Follow the link to reset
-the administrator password.
-
-* Browse again to port 443 on the host and click `Login`. Enter the administrator name you injected
-and the password you just set. Click `Sign In`. You will be sent another email with a link in it to verify the account.
-Follow the link to verify the account.
-
-* Browse again to port 443 on the host and click `Login`. Enter the administrator name and password
-you just verified. Click `Sign In`.
+* Browse to port 443 on the host and authenticate using an identity provider (IdP) federated
+with the Shibboleth SP.
 
 * Visit the [COmanage wiki](https://spaces.internet2.edu/display/COmanage/Mailman+Provisioning+Plugin)
 to learn how to enable and configure the Mailman Provisioning Plugin for COmanage Registry.
@@ -237,7 +223,7 @@ docker-compose logs mailman-web
 
 docker-compose logs postfix
 
-docker-compose logs nginx
+docker-compose logs apache
 
 docker-compose logs -f --tail=100 mailman-core
 
@@ -247,7 +233,7 @@ docker-compose logs -f --tail=100 mailman-web
 
 docker-compose logs -f --tail=100 postfix
 
-docker-compose logs -f --tail=100 nginx
+docker-compose logs -f --tail=100 apache
 
 docker-compose down
 ```
@@ -267,7 +253,7 @@ docker service logs mailman_mailman-core
 
 docker service logs mailman_mailman-web
 
-docker service logs mailman_nginx
+docker service logs mailman_apache
 
 docker service logs mailman_database
 
@@ -277,7 +263,7 @@ docker service logs --tail=100 -f mailman_mailman-core
 
 docker service logs --tail=100 -f mailman_mailman-web
 
-docker service logs --tail=100 -f mailman_nginx
+docker service logs --tail=100 -f mailman_apache
 
 docker service logs --tail=100 -f mailman_postfix
 

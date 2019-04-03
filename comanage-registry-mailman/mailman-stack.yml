@@ -1,30 +1,16 @@
-# Docker Swarm stack compose file for Mailman 3 for COmanage Registry
-#
-# Portions licensed to the University Corporation for Advanced Internet
-# Development, Inc. ("UCAID") under one or more contributor license agreements.
-# See the NOTICE file distributed with this work for additional information
-# regarding copyright ownership.
-#
-# UCAID licenses this file to you under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with the
-# License. You may obtain a copy of the License at:
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
-# This is an example compose file. Be sure to modify it as necessary
-# for your own deployment.
+version: '3.3'
 
-version: '3.2'
+networks:
+    default:
+        driver: overlay
+        ipam:
+            driver: default
+            config:
+                - subnet: 10.1.0.0/24
 
 services:
     mailman-core:
-        image: sphericalcowgroup/mailman-core:0.1.7
+        image: sphericalcowgroup/mailman-core:0.2.1
         volumes:
             - /srv/docker/mailman/core:/opt/mailman/
         environment:
@@ -43,18 +29,21 @@ services:
             - hyperkitty_api_key
             - mailman_database_url
             - mailman_rest_password
+        deploy:
+            endpoint_mode: dnsrr
 
     mailman-web:
-        image: sphericalcowgroup/mailman-web:0.1.7
+        image: sphericalcowgroup/mailman-web:0.2.1
         volumes:
             - /srv/docker/mailman/web:/opt/mailman-web-data
+            - /srv/docker/mailman/settings.py:/opt/mailman-web/settings.py
         environment:
             - MAILMAN_DATABASE_URL_FILE=/run/secrets/mailman_database_url
             - MAILMAN_DATABASE_TYPE=postgres
             - HYPERKITTY_API_KEY_FILE=/run/secrets/hyperkitty_api_key
-            - SERVE_FROM_DOMAIN=lists-dev.sphericalcowgroup.com
-            - MAILMAN_ADMIN_USER=mailman_admin
-            - MAILMAN_ADMIN_EMAIL=admin@local
+            - SERVE_FROM_DOMAIN=
+            - MAILMAN_ADMIN_USER=
+            - MAILMAN_ADMIN_EMAIL=
             - MAILMAN_WEB_SECRET_KEY_FILE=/run/secrets/mailman_web_secret_key
             - MAILMAN_REST_USER=restadmin
             - MAILMAN_REST_PASSWORD_FILE=/run/secrets/mailman_rest_password
@@ -67,6 +56,8 @@ services:
             - mailman_database_url
             - mailman_rest_password
             - mailman_web_secret_key
+        deploy:
+            endpoint_mode: dnsrr
 
     database:
         image: postgres:9.6
@@ -80,30 +71,49 @@ services:
             - default
         secrets:
             - postgres_password
+        deploy:
+            endpoint_mode: dnsrr
 
     postfix:
-        image: sphericalcowgroup/mailman-postfix
+        image: sphericalcowgroup/mailman-postfix:2
         volumes:
             - /srv/docker/mailman:/opt/mailman
         environment:
-            - POSTFIX_MAILNAME=lists-dev.sphericalcowgroup.com
+            - POSTFIX_MYHOSTNAME=lists-dev.sphericalcowgroup.com
+            - POSTFIX_MYNETWORKS=!10.255.0.0/16 10.1.0.0/24
         ports:
-            - "25:25"
+            - target: 25
+              published: 25
+              # 'host' mode is necessary for Postfix to receive the connection IP address
+              # instead of the ingress network IP address. This is only a useful workaround
+              # when not truly leveraging the load balancing capabilities of swarm mode.
+              # Normally with more than a single mode swarm the upstream load balancer in
+              # front of the swarm would be used for the definitive access log.
+              # See discussion at https://github.com/moby/moby/issues/25526 .
+              mode: host
         networks:
             - default
+        deploy:
+            endpoint_mode: dnsrr
 
-    nginx:
-        image: sphericalcowgroup/mailman-core-nginx
+    apache:
+        image: sphericalcowgroup/mailman-core-apache-shib:1
         volumes:
             - /srv/docker/mailman/web:/opt/mailman-web-data
+            - /srv/docker/mailman/shib/etc/shibboleth2.xml:/etc/shibboleth/shibboleth2.xml
+            - /srv/docker/mailman/shib/etc/attribute-map.xml:/etc/shibboleth/attribute-map.xml
         environment:
-            - NGINX_HTTPS_CERT_FILE=/run/secrets/nginx_https_cert_file
-            - NGINX_HTTPS_KEY_FILE=/run/secrets/nginx_https_key_file
-            - NGINX_DH_PARAM_FILE=/run/secrets/nginx_dh_param_file
+            - HTTPS_CERT_FILE=/run/secrets/https_cert_file
+            - HTTPS_KEY_FILE=/run/secrets/https_key_file
+            - MAILMAN_ADMIN_EMAIL=
+            - SHIBBOLETH_SP_ENCRYPT_CERT=/run/secrets/shibboleth_sp_encrypt_cert
+            - SHIBBOLETH_SP_ENCRYPT_PRIVKEY=/run/secrets/shibboleth_sp_encrypt_privkey
+            - VIRTUAL_HOST_FQDN=
         secrets:
-            - nginx_https_cert_file
-            - nginx_https_key_file
-            - nginx_dh_param_file
+            - https_cert_file
+            - https_key_file
+            - shibboleth_sp_encrypt_cert
+            - shibboleth_sp_encrypt_privkey
         networks:
             - default
         ports:
@@ -123,8 +133,13 @@ services:
               mode: host
         deploy:
             replicas: 1
+            endpoint_mode: dnsrr
 
 secrets:
+    https_cert_file:
+        external: true
+    https_key_file:
+        external: true
     hyperkitty_api_key:
         external: true
     mailman_database_url:
@@ -133,11 +148,9 @@ secrets:
         external: true
     mailman_web_secret_key:
         external: true
-    nginx_https_cert_file:
-        external: true
-    nginx_https_key_file:
-        external: true
-    nginx_dh_param_file:
-        external: true
     postgres_password:
+        external: true
+    shibboleth_sp_encrypt_cert:
+        external: true
+    shibboleth_sp_encrypt_privkey:
         external: true
