@@ -126,6 +126,6 @@ The instructions above are *not suitable for a production deployment* for two re
 
 ## Next Steps
 To evolve your COmanage Registry deployment examine the documentation
-in the [docs directory](docs/README.md).
+in the [docs directory](./README.md).
 
 
