@@ -75,7 +75,7 @@ The following link to detailed instructions for a number of deployment scenarios
 
 * [COmanage Registry using the Shibboleth SP and PostgreSQL database](docs/shibboleth-sp-postgresql.md)
 * [COmanage Registry using the Shibboleth SP and MariaDB database](docs/shibboleth-sp-mariadb.md)
-* [COmanage Registry using mod\_auth\_openidc and database](docs/mod-auth-openidc-postgresql.md)
+* [COmanage Registry using mod\_auth\_openidc and MariaDB database](docs/mod-auth-openidc-mariadb.md)
 * [COmanage Registry using the Internet2 TIER image](docs/comanage-registry-internet2-tier.md)
 
 
