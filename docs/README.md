@@ -21,10 +21,5 @@ limitations under the License.
 
 # COmanage Registry Docker Documentation
 
-* [Persist data using host-mounted volumes](./basic-auth-postgres-persist.md)
-* [Use MariaDB instead of PostgreSQL](./basic-auth-mariadb-persist.md)
-* [Add OpenLDAP slapd for provisioning](./openldap-slapd.md)
-* [Advanced configuration](./advanced-configuration.md)
-* [Complete example recipe for production deployment](./shibboleth-sp-postgres-compose.md)
-* [Using Docker service stacks and Docker secrets](./mod-auth-oidc-mariadb-stacks.md)
-
+See the [main README.md](../README.md) file for a list of
+all COmanage Registry Docker Documentation.
