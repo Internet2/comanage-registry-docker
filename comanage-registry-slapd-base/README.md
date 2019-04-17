@@ -47,8 +47,8 @@ docker build \
 ## Building Example
 
 ```
-export COMANAGE_REGISTRY_SLAPD_IMAGE_VERSION=1
-TAG="${COMANAGE_REGISTRY_SLAPD_IMAGE_VERSION}"
+export COMANAGE_REGISTRY_SLAPD_BASE_IMAGE_VERSION=1
+TAG="${COMANAGE_REGISTRY_SLAPD_BASE_IMAGE_VERSION}"
 docker build \
   -t comanage-registry-slapd-base:$TAG .
 ```
