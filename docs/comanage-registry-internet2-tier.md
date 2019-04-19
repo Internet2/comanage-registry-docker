@@ -131,7 +131,7 @@ docker secret create shibboleth_sp_encrypt_privkey sp-encrypt-key.pem
 and other files including the Shibboleth SP configuration files:
 
 ```
-sudo mkdir -p /srv/docker/var/lib/postgresql/data
+sudo mkdir -p /srv/docker/var/lib/mysql
 sudo mkdir -p /srv/docker/srv/comanage-registry/local
 sudo mkdir -p /srv/docker/etc/shibboleth
 ```
@@ -147,7 +147,7 @@ the details will depend on your SAML federation choices.
 ```
 cp shibboleth2.xml /srv/docker/etc/shibboleth/
 cp attribute-map.xml /srv/docker/etc/shibboleth/
-cp saml-metadata.xml /src/docker/etc/shibboleth/
+cp saml-metadata.xml /srv/docker/etc/shibboleth/
 ```
 
 * Define shell variables for the first COmanage Registry platform
@@ -232,9 +232,9 @@ services:
 secrets:
     comanage_registry_database_user_password:
         external: true
-    mariadb_root_password
+    mariadb_root_password:
         external: true
-    mariadb_password
+    mariadb_password:
         external: true
     shibboleth_sp_encrypt_cert:
         external: true
@@ -257,16 +257,21 @@ time for the database tables to be created. The Apache HTTP Server and
 Shibboleth SP daemons will not be started until the entrypoint scripts
 detect that the database has been initialized.
 
+Check that both the comanage-registry-database and comanage-registry images are running with
+```
+docker service ls
+```
+
 You may monitor the progress of the database container using
 
 ```
-docker service logs -f comanage-registry-database
+docker service logs -f comanage-registry_comanage-registry-database
 ```
 
 and the progress of the COmanage Registry container using
 
 ```
-docker service logs -f comanage-registry
+docker service logs -f comanage-registry_comanage-registry
 ```
 
 * After the Apache HTTP Server has started browse to port 443 on the host. 
