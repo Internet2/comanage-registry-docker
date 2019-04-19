@@ -91,7 +91,7 @@ docker run -d --name comanage-registry-shibboleth-sp-base \
   -e HTTPS_PRIVKEY_FILE=/tmp/https_privkey_file \
   -e SHIBBOLETH_SP_ENTITY_ID=https://registry.my.org/shibboleth \
   -e SHIBBOLETH_SP_CERT=/tmp/sp-cert.pem \
-  -e SHIBBOLETH_SP_KEY=/tmp/sp-key.pem \
+  -e SHIBBOLETH_SP_PRIVKEY=/tmp/sp-key.pem \
   -p 80:80 -p 443:443 \
   comanage-registry-shibboleth-sp-base
 ```
