@@ -27,6 +27,7 @@ OUTPUT=/dev/stdout
 injectable_config_vars=( 
     POSTFIX_MYHOSTNAME
     POSTFIX_MYNETWORKS
+    POSTFIX_RELAYHOST
 )
 
 # If the file associated with a configuration variable is present then 
@@ -60,5 +61,9 @@ sed -i -e s@%%MYHOSTNAME%%@"${MYHOSTNAME}"@ /etc/postfix/main.cf
 # Edit the postfix configuration file in place to set mynetworks.
 MYNETWORKS=${POSTFIX_MYNETWORKS:-127.0.0.0/8 [::1]/128}
 sed -i -e s@%%MYNETWORKS%%@"${MYNETWORKS}"@ /etc/postfix/main.cf
+
+# Edit the postfix configuration file in place to set relayhost.
+RELAYHOST=${POSTFIX_RELAYHOST:-}
+sed -i -e s@%%RELAYHOST%%@"${RELAYHOST}"@ /etc/postfix/main.cf
 
 exec /usr/lib/postfix/sbin/master -c /etc/postfix -d
