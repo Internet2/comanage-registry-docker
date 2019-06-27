@@ -24,6 +24,8 @@ RUN apt-get update \
         gcc \
         libc-dev \
         libcurl4-openssl-dev \
+        libffi-dev \
+        libffi6 \
         libmariadbclient-dev \
         netcat-traditional \
         postgresql-client \
@@ -31,9 +33,9 @@ RUN apt-get update \
     && pip install --upgrade pip \
     && pip install django==2.1.5 \
     && pip install \
-        mailmanclient==3.2.1 \
-        postorius==1.2.3 \
-        hyperkitty==1.2.1 \
+        mailmanclient==3.2.2 \
+        postorius==1.2.4 \
+        hyperkitty==1.2.2 \
         django-mailman3==1.2.0 \
         whoosh \
         uwsgi \
