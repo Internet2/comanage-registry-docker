@@ -104,7 +104,8 @@ RUN cd /etc/httpd/conf.d \
     && cd /var/www/html \
     && ln -s ${COMANAGE_REGISTRY_DIR}/app/webroot registry \
     && rm -rf ${COMANAGE_REGISTRY_DIR}/local/* \
-    && chown -R apache:apache ${COMANAGE_REGISTRY_DIR}/app/tmp
+    && chown -R apache:apache ${COMANAGE_REGISTRY_DIR}/app/tmp \
+    && rm -f /etc/shibboleth/shibboleth2.xml
 
 # Allow values for first administrator bootstrapped into the
 # platform to be specified at image build time, in addition to
