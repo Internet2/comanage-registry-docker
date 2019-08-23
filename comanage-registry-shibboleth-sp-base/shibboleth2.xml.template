@@ -6,7 +6,7 @@
     <OutOfProcess tranLogFormat="%u|%s|%IDP|%i|%ac|%t|%attr|%n|%b|%E|%S|%SS|%L|%UA|%a" />
 
     <ApplicationDefaults entityID="%%SHIBBOLETH_SP_ENTITY_ID%%"
-                         REMOTE_USER="eppn persistent-id targeted-id"
+                         REMOTE_USER="eppn subject-id pairwise-id persistent-id"
                          cipherSuites="DEFAULT:!EXP:!LOW:!aNULL:!eNULL:!DES:!IDEA:!SEED:!RC4:!3DES:!kRSA:!SSLv2:!SSLv3:!TLSv1:!TLSv1.1"
                          >
 
@@ -19,6 +19,8 @@
            </SSO>
 
            <Logout>Local</Logout>
+
+           <LogoutInitiator type="Admin" Location="/Logout/Admin" acl="127.0.0.1 ::1" />
 
             <Handler type="MetadataGenerator" Location="/Metadata" signing="false"/>
 
