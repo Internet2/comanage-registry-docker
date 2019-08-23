@@ -1,14 +1,13 @@
-# set overall behavior
-log4j.rootCategory=INFO, native_log
+log4j.rootCategory=WARN, console
 
-# fairly verbose for DEBUG, so generally leave at WARN/INFO
-log4j.category.XMLTooling.XMLObject=WARN
-log4j.category.XMLTooling.KeyInfoResolver=WARN
-log4j.category.Shibboleth.IPRange=WARN
-log4j.category.Shibboleth.PropertySet=WARN
+# fairly verbose for DEBUG, so generally leave at INFO
+log4j.category.XMLTooling.XMLObject=INFO
+log4j.category.XMLTooling.KeyInfoResolver=INFO
+log4j.category.Shibboleth.IPRange=INFO
+log4j.category.Shibboleth.PropertySet=INFO
 
 # raise for low-level tracing of SOAP client HTTP/SSL behavior
-log4j.category.XMLTooling.libcurl=WARN
+log4j.category.XMLTooling.libcurl=INFO
 
 # useful categories to tune independently:
 #
@@ -27,6 +26,7 @@ log4j.category.XMLTooling.libcurl=WARN
 
 # define the appender
 
-log4j.appender.native_log=org.apache.log4j.ConsoleAppender
-log4j.appender.native_log.layout=org.apache.log4j.PatternLayout
-log4j.appender.native_log.layout.ConversionPattern=native_log %p %c %x: %m%n
+log4j.appender.console=org.apache.log4j.ConsoleAppender
+#log4j.appender.console.layout=org.apache.log4j.BasicLayout
+log4j.appender.console.layout=org.apache.log4j.PatternLayout
+log4j.appender.console.layout.ConversionPattern=console_log %d{%Y-%m-%d %H:%M:%S} %p %c %x: %m%n

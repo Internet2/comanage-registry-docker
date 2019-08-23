@@ -52,9 +52,6 @@ RUN /usr/sbin/useradd --system _shibd \
       && rm -rf shibboleth \
       && ln -s /etc/shibboleth shibboleth
 
-COPY --chown=_shibd:_shibd shibd.logger /etc/shibboleth/shibd.logger
-COPY --chown=_shibd:_shibd native.logger /etc/shibboleth/native.logger
-
 COPY --from=comanage-registry-base /usr/local/lib/comanage_shibboleth_sp_utils.sh /usr/local/lib/comanage_shibboleth_sp_utils.sh
 
 COPY supervisord.conf /usr/local/etc/supervisord.conf

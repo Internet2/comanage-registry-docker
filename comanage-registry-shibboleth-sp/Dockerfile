@@ -58,9 +58,6 @@ RUN /usr/sbin/useradd --system _shibd \
       && ln -s /etc/shibboleth shibboleth \
       && a2enmod shib2
 
-COPY --chown=_shibd:_shibd shibd.logger /etc/shibboleth/shibd.logger
-COPY --chown=_shibd:_shibd native.logger /etc/shibboleth/native.logger
-
 COPY supervisord.conf /usr/local/etc/supervisord.conf
 
 COPY 000-comanage.conf /etc/apache2/sites-available/

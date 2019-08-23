@@ -139,6 +139,9 @@ RUN wget -O shibboleth-sp.tar.gz "${SHIBBOLETH_SP_URL}" \
 
 COPY shib2.load /opt/shibboleth-sp/etc/shibboleth/shib2.load
 COPY shibboleth2.xml.template /opt/shibboleth-sp/etc/shibboleth/shibboleth2.xml.template
+COPY shibd.logger /opt/shibboleth-sp/etc/shibboleth/shibd.logger
+COPY native.logger /opt/shibboleth-sp/etc/shibboleth/native.logger
+COPY console.logger /opt/shibboleth-sp/etc/shibboleth/console.logger
 
 RUN apt-get update && apt-get install -y \
       && apt-get purge -y \
