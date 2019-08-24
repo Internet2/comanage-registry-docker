@@ -117,6 +117,7 @@ _MIDDLEWARE = (
     'django.middleware.security.SecurityMiddleware',
     'django_mailman3.middleware.TimezoneMiddleware',
     'postorius.middleware.PostoriusMiddleware',
+    'request_logging.middleware.LoggingMiddleware',
 )
 
 # Use old-style Middleware class in Python 2 and released versions of

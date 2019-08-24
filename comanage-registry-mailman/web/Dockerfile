@@ -44,6 +44,7 @@ RUN apt-get update \
         mysqlclient \
         typing \
         xapian-haystack \
+        django-request-logging \
     && adduser --system --no-create-home --group mailman
 
 COPY django-mail-header /tmp/django-mail-header
