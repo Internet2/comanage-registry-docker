@@ -233,9 +233,9 @@ services:
 secrets:
     comanage_registry_database_user_password:
         external: true
-    mariadb_root_password
+    mariadb_root_password:
         external: true
-    mariadb_password
+    mariadb_password:
         external: true
     shibboleth_sp_encrypt_cert:
         external: true
