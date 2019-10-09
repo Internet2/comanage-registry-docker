@@ -109,6 +109,8 @@ comanage-registry-ldap:
         - olc_root_pw
     networks:
         - default
+    ports:
+        - "389:389"
     deploy:
         replicas: 1
 ```
@@ -140,4 +142,13 @@ and then change the `command` above to be
 
 ```
 command: ["slapd", "-d", "256", "-h", "ldapi:/// ldap:/// ldaps:///", "-u", "openldap", "-g", "openldap"]
+```
+
+Edit the Docker Swarm services stack description (compose) file to add
+the port for TLS connections:
+
+```
+    ports:
+        - "389:389"
+        - "636:636"
 ```
