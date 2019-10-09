@@ -85,6 +85,7 @@ to be the version of the image you are about to build:
 
 ```
 export COMANAGE_REGISTRY_SHIBBOLETH_SP_IMAGE_VERSION=1
+export COMANAGE_REGISTRY_SHIBBOLETH_SP_VERSION=3.2.1
 ```
 
 * Build an image for COmanage Registry that uses the Shibboleth SP
@@ -97,6 +98,7 @@ docker build \
     --build-arg COMANAGE_REGISTRY_VERSION=${COMANAGE_REGISTRY_VERSION} \
     --build-arg COMANAGE_REGISTRY_BASE_IMAGE_VERSION=${COMANAGE_REGISTRY_BASE_IMAGE_VERSION} \
     --build-arg COMANAGE_REGISTRY_SHIBBOLETH_SP_BASE_IMAGE_VERSION=${COMANAGE_REGISTRY_SHIBBOLETH_SP_BASE_IMAGE_VERSION} \
+    --build-arg COMANAGE_REGISTRY_SHIBBOLETH_SP_VERSION=${COMANAGE_REGISTRY_SHIBBOLETH_SP_VERSION} \
     -t comanage-registry:$TAG .
 popd
 ```
