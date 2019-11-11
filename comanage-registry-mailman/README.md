@@ -96,10 +96,10 @@ CA signing certificates (except for the trust root) should be in a single file, 
 to save local state, eg.
 
 ```
-mkdir -p /opt/mailman/core
-mkdir -p /opt/mailman/web
-mkdir -p /opt/mailman/database
-mkdir -p /opt/mailman/shib
+mkdir -p /srv/docker/opt/mailman/core
+mkdir -p /srv/docker/opt/mailman/web
+mkdir -p /srv/docker/opt/mailman/database
+mkdir -p /srv/docker/opt/mailman/shib
 ```
 
 * If you are using Docker Compose to deploy the service stack copy the file
