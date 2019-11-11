@@ -73,7 +73,7 @@ to create a hashed password value.
 (be sure to use your own value and not the example below):
 
 ```
-echo "{SSHA}emcy1JA+mxbHH0PMPcnasE9apBStAMks" | docker secret create olc_root_pw
+echo "{SSHA}emcy1JA+mxbHH0PMPcnasE9apBStAMks" | docker secret create olc_root_pw -
 ```
 
 * Create directories on the Docker engine host(s) for state files:
