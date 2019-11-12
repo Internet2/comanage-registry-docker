@@ -74,7 +74,7 @@ export COMANAGE_REGISTRY_SHIBBOLETH_SP_BASE_IMAGE_VERSION=1
 
 ```
 pushd comanage-registry-shibboleth-sp-base
-TAG="${COMANAGE_REGISTRY_SHIBBOLETH_SP_BASE_IMAGE_VERSION}"
+TAG=${COMANAGE_REGISTRY_SHIBBOLETH_SP_VERSION}-${COMANAGE_REGISTRY_SHIBBOLETH_SP_BASE_IMAGE_VERSION}
 docker build \
     -t comanage-registry-shibboleth-sp-base:$TAG . 
 popd
