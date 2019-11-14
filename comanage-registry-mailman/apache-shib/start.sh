@@ -55,6 +55,13 @@ if [ -n "${HTTPS_CERT_FILE}" ] && [ -n "${HTTPS_KEY_FILE}" ]; then
     chmod 600 /usr/local/apache2/conf/server.key
 fi
 
+# Copy HTTPS chain file into place.
+if [ -n "${HTTPS_CHAIN_FILE}" ]; then
+    cp "${HTTPS_CHAIN_FILE}" /usr/local/apache2/conf/ca-chain.crt
+    chmod 644 /usr/local/apache2/conf/ca-chain.crt
+    sed -i -e 's/^#SSLCertificateChainFile/SSLCertificateChainFile' /usr/local/apache2/conf/httpd.conf
+fi
+
 # Wait for the mailman core container to be ready.
 until nc -z -w 1 "${MAILMAN_CORE_HOST}" "${MAILMAN_CORE_PORT}"
 do

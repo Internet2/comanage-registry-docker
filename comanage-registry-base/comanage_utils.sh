@@ -103,6 +103,7 @@ function comanage_utils::consume_injected_environment() {
         COMANAGE_REGISTRY_VIRTUAL_HOST_FQDN
         HTTPS_CERT_FILE
         HTTPS_PRIVKEY_FILE
+        HTTPS_CHAIN_FILE
         SERVER_NAME
     )
 
@@ -333,6 +334,7 @@ EOF
 # Globals:
 #   HTTPS_CERT_FILE
 #   HTTPS_PRIVKEY_FILE
+#   HTTPS_CHAIN_FILE
 # Arguments:
 #   None
 # Returns:
@@ -347,10 +349,14 @@ function comanage_utils::prepare_https_cert_key() {
     if [[ -e '/etc/debian_version' ]]; then
         cert_path='/etc/apache2/cert.pem'
         privkey_path='/etc/apache2/privkey.pem'
+        chain_path='/etc/apache2/ca-chain.pem'
+        ssl_conf_file='/etc/apache2/sites-available/000-comanage.conf'
         web_user='www-data'
     elif [[ -e '/etc/centos-release' ]]; then
         cert_path='/etc/httpd/cert.pem'
         privkey_path='/etc/httpd/privkey.pem'
+        chain_path='/etc/httpd/ca-chain.pem'
+        ssl_conf_file='/etc/httpd/conf.d/000-comanage.conf'
         web_user='apache'
     fi
 
@@ -373,6 +379,21 @@ function comanage_utils::prepare_https_cert_key() {
         chmod 0600 "${privkey_path}"
         echo "Copied HTTPS private key file ${HTTPS_PRIVKEY_FILE} to ${privkey_path}" > "$OUTPUT"
         echo "Set ownership of ${privkey_path} to ${web_user}" > "$OUTPUT"
+    fi
+
+    # If a chain file is defined, use configured location of the Apache HTTP
+    # Server certificate chain and uncomment the SSLCertificateChainFile
+    # option from the apache config file
+    if [[ -n "${HTTPS_CHAIN_FILE}" ]]; then
+        rm -f "${chain_path}"
+        cp "${HTTPS_CHAIN_FILE}" "${chain_path}"
+        chown "${web_user}" "${chain_path}"
+        chmod 0644 "${chain_path}"
+        sed -i -e 's/^#SSLCertificateChainFile/SSLCertificateChainFile' ${ssl_config_file}
+        sed -i -e "s/%%CHAIN_PATH%%/${chain_path}" ${ssl_config_file}
+        echo "Copied HTTPS CA Chain file ${HTTPS_CHAIN_FILE} to ${chain_path}" > "$OUTPUT"
+        echo "Set ownership of ${chain_path} to ${web_user}" > "$OUTPUT"
+        echo "Configured apache to use SSLCertificateChainFile=${chain_path}" > "$OUTPUT"
     fi
 }
 
