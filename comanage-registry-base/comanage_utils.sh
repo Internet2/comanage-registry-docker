@@ -390,7 +390,7 @@ function comanage_utils::prepare_https_cert_key() {
         chown "${web_user}" "${chain_path}"
         chmod 0644 "${chain_path}"
         sed -i -e 's/^#SSLCertificateChainFile/SSLCertificateChainFile/' ${ssl_conf_file}
-        sed -i -e "s/%%CHAIN_PATH%%/${chain_path}/" ${ssl_conf_file}
+        sed -i -e "s+%%CHAIN_PATH%%+${chain_path}+" ${ssl_conf_file}
         echo "Copied HTTPS CA Chain file ${HTTPS_CHAIN_FILE} to ${chain_path}" > "$OUTPUT"
         echo "Set ownership of ${chain_path} to ${web_user}" > "$OUTPUT"
         echo "Configured apache to use SSLCertificateChainFile=${chain_path}" > "$OUTPUT"
