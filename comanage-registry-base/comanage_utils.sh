@@ -87,6 +87,7 @@ function comanage_utils::consume_injected_environment() {
         COMANAGE_REGISTRY_ADMIN_GIVEN_NAME
         COMANAGE_REGISTRY_ADMIN_FAMILY_NAME
         COMANAGE_REGISTRY_ADMIN_USERNAME
+        COMANAGE_REGISTRY_CRONTAB
         COMANAGE_REGISTRY_DATASOURCE
         COMANAGE_REGISTRY_DATABASE
         COMANAGE_REGISTRY_DATABASE_HOST
@@ -125,6 +126,33 @@ function comanage_utils::consume_injected_environment() {
     done
 
     echo "Done examining environment variables" > "$OUTPUT"
+}
+
+##########################################
+# Deploy crontab file
+# Globals:
+#   COMANAGE_REGISTRY_DIR
+#   COMANAGE_REGISTRY_CRONTAB
+#   OUTPUT
+# Arguments:
+#   None
+# Returns:
+#   None
+##########################################
+function comanage_utils::deploy_crontab() {
+
+    local crontab
+    
+    if [[ -n "$COMANAGE_REGISTRY_CRONTAB" ]]; then
+        crontab="$COMANAGE_REGISTRY_CRONTAB"
+    else
+        crontab="$COMANAGE_REGISTRY_DIR/local/crontab"
+    fi
+
+    if [[ -f "$crontab" ]]; then
+        echo "Deploying crontab $crontab..." > "$OUTPUT" 2>&1
+        /usr/bin/crontab -u www-data $crontab > "$OUTPUT" 2>&1
+    fi
 }
 
 ##########################################
@@ -202,6 +230,38 @@ function comanage_utils::exec_apache_http_server() {
     if [ "${1#-}" != "$1" ]; then
         set -- apache2-foreground "$@"
     fi
+
+    exec "$@"
+}
+
+##########################################
+# Exec to start and become cron
+# Globals:
+#   None
+# Arguments:
+#   Command and arguments to exec
+# Returns:
+#   Does not return
+##########################################
+function comanage_utils::exec_cron() {
+
+    comanage_utils::consume_injected_environment
+
+    comanage_utils::configure_console_logging
+
+    comanage_utils::prepare_local_directory
+
+    comanage_utils::prepare_database_config
+
+    comanage_utils::wait_database_connectivity
+
+    comanage_utils::registry_clear_cache
+
+    comanage_utils::tmp_ownership
+
+    comanage_utils::deploy_crontab
+
+    comanage_utils::start_syslogd
 
     exec "$@"
 }
@@ -621,6 +681,21 @@ function comanage_utils::registry_upgrade() {
 
     # Clear the caches again.
     comanage_utils::registry_clear_cache
+}
+
+##########################################
+# Start syslogd from busybox for use with cron
+# Globals:
+#   None
+# Arguments:
+#   None
+# Returns:
+#   None
+##########################################
+function comanage_utils::start_syslogd() {
+
+    /sbin/syslogd -O /proc/1/fd/1 -S
+
 }
 
 ##########################################
