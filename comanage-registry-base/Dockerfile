@@ -16,7 +16,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-FROM php:7.3.6-apache-stretch
+FROM php:7.3.13-apache-buster
 
 # Official PHP image with Apache HTTPD includes
 # --with-openssl
@@ -26,7 +26,6 @@ FROM php:7.3.6-apache-stretch
 RUN apt-get update && apt-get install -y \
          libldap-2.4-2 \
          libldap2-dev \
-         libmariadbclient18 \
          libmariadbclient-dev \
          libpq-dev \
          libxml2 \
