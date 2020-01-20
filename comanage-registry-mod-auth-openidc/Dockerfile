@@ -18,11 +18,11 @@
 # limitations under the License.
 ARG COMANAGE_REGISTRY_VERSION=develop
 ARG COMANAGE_REGISTRY_BASE_IMAGE_VERSION=1
-ARG MOD_AUTH_OPENIDC_SRC_URL=https://github.com/zmartzone/mod_auth_openidc/archive/v2.3.10.1.tar.gz
+ARG MOD_AUTH_OPENIDC_SRC_URL=https://github.com/zmartzone/mod_auth_openidc/archive/v2.4.0.4.tar.gz
 
 FROM comanage-registry-base:${COMANAGE_REGISTRY_VERSION}-${COMANAGE_REGISTRY_BASE_IMAGE_VERSION} AS comanage
 
-FROM debian:stretch AS building
+FROM debian:buster AS building
 
 ARG MOD_AUTH_OPENIDC_SRC_URL
 ENV MOD_AUTH_OPENIDC_SRC_URL ${MOD_AUTH_OPENIDC_SRC_URL}
