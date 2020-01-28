@@ -18,7 +18,7 @@
 # limitations under the License.
 ARG COMANAGE_REGISTRY_VERSION=develop
 ARG COMANAGE_REGISTRY_BASE_IMAGE_VERSION=1
-ARG MOD_AUTH_OPENIDC_SRC_URL=https://github.com/zmartzone/mod_auth_openidc/archive/v2.4.0.4.tar.gz
+ARG MOD_AUTH_OPENIDC_SRC_URL=https://github.com/zmartzone/mod_auth_openidc/releases/download/v2.3.11/mod_auth_openidc-2.3.11.tar.gz
 
 FROM comanage-registry-base:${COMANAGE_REGISTRY_VERSION}-${COMANAGE_REGISTRY_BASE_IMAGE_VERSION} AS comanage
 
