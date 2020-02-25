@@ -16,7 +16,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-FROM debian:stretch
+FROM debian:buster
 
 RUN apt-get update \
       && apt-get install -y --no-install-recommends \
@@ -27,8 +27,8 @@ RUN apt-get update \
             g++ \
             libboost-dev \
             libcurl4-openssl-dev \
-            libssl1.0-dev \
-            libssl1.0.2 \
+            libssl-dev \
+            libssl1.1 \
             make \
             pkg-config \
             wget \
