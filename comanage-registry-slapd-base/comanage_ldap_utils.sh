@@ -94,6 +94,7 @@ function comanage_ldap_utils::add_schemas() {
 # Globals:
 #   OLC_SUFFIX
 #   OLC_ROOT_DN
+#   OLC_ROOT_DN_PASSWORD
 #   OLC_ROOT_PW
 # Arguments:
 #   None
@@ -103,7 +104,12 @@ function comanage_ldap_utils::add_schemas() {
 function comanage_ldap_utils::bootstrap() {
     local suffix="${OLC_SUFFIX:-dc=my,dc=org}"
     local root_dn="${OLC_ROOT_DN:-cn=admin,dc=my,dc=org}"
-    local root_pw="${OLC_ROOT_PW:-password}"
+
+    if [[ -n "${OLC_ROOT_DN_PASSWORD}" && -z "${OLC_ROOT_PW}" ]]; then
+        local root_pw="${OLC_ROOT_DN_PASSWORD}"
+    else
+        local root_pw="${OLC_ROOT_PW:-password}"
+    fi
 
     # Parse the domain, rdn, and the value of rdn from the OLC_SUFFIX
     local domain=`echo ${suffix} | sed -e 's/dc=//g' -e 's/,/./g'`

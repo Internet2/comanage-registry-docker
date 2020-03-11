@@ -72,7 +72,7 @@ OLC_ROOT_PW
 ```
 
 * Description: Password (usually hashed) for the root DN
-* Required: yes
+* Required: yes if `OLC_ROOT_DN_PASSWORD` is not set
 * Default: password
 * Example: {SSHA}emcy1JA+mxbHH0PMPcnasE9apBStAMks
 * Note: See the [slappasswd OpenLDAP password utility](https://linux.die.net/man/8/slappasswd) for details on how to
