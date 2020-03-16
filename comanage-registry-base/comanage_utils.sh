@@ -99,6 +99,8 @@ function comanage_utils::consume_injected_environment() {
         COMANAGE_REGISTRY_EMAIL_PORT
         COMANAGE_REGISTRY_EMAIL_ACCOUNT
         COMANAGE_REGISTRY_EMAIL_ACCOUNT_PASSWORD
+        COMANAGE_REGISTRY_NO_DATABASE_CONFIG
+        COMANAGE_REGISTRY_NO_EMAIL_CONFIG
         COMANAGE_REGISTRY_SECURITY_SALT
         COMANAGE_REGISTRY_SECURITY_SEED
         COMANAGE_REGISTRY_VIRTUAL_HOST_FQDN
@@ -192,7 +194,8 @@ function comanage_utils::enable_plugins() {
 ##########################################
 # Exec to start and become Apache HTTP Server
 # Globals:
-#   None
+#   COMANAGE_REGISTRY_NO_DATABASE_CONFIG
+#   COMANAGE_REGISTRY_NO_EMAIL_CONFIG
 # Arguments:
 #   Command and arguments to exec
 # Returns:
@@ -206,9 +209,13 @@ function comanage_utils::exec_apache_http_server() {
 
     comanage_utils::prepare_local_directory
 
-    comanage_utils::prepare_database_config
+    if [[ -z ${COMANAGE_REGISTRY_NO_DATABASE_CONFIG} ]]; then
+        comanage_utils::prepare_database_config
+    fi
 
-    comanage_utils::prepare_email_config
+    if [[ -z ${COMANAGE_REGISTRY_NO_EMAIL_CONFIG} ]]; then
+        comanage_utils::prepare_email_config
+    fi
 
     comanage_utils::prepare_https_cert_key
 
@@ -251,7 +258,9 @@ function comanage_utils::exec_cron() {
 
     comanage_utils::prepare_local_directory
 
-    comanage_utils::prepare_database_config
+    if [[ -z ${COMANAGE_REGISTRY_NO_DATABASE_CONFIG} ]]; then
+        comanage_utils::prepare_database_config
+    fi
 
     comanage_utils::wait_database_connectivity
 

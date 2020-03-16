@@ -161,6 +161,28 @@ provided that the file it points to exists and is readable.
 * Default: none
 * Example: IdentifierEnroller,LdapIdentifierValidator,MailmanProvisioner
 
+```COMANAGE_REGISTRY_NO_DATABASE_CONFIG```
+
+* Description: Do not write a database configuration file if environment variable is set.
+* Required: no
+* Default: not set
+* Example: 1
+* Note: If the environment variable is set to any value then the entrypoint script will
+not attempt to write the database configuration file ```database.php```. This 
+environment variable is often used with the `comanage-registry-cron` image when it
+shares a bind mounted directory with the COmanage Registry image.
+
+```COMANAGE_REGISTRY_NO_EMAIL_CONFIG```
+
+* Description: Do not write an email configuration file if environment variable is set.
+* Required: no
+* Default: not set
+* Example: 1
+* Note: If the environment variable is set to any value then the entrypoint script will
+not attempt to write the email configuration file ```email.php```. This 
+environment variable is often used with the `comanage-registry-cron` image when it
+shares a bind mounted directory with the COmanage Registry image.
+
 
 ```COMANAGE_REGISTRY_SECURITY_SALT```
 
