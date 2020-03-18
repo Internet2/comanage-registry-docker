@@ -105,7 +105,7 @@ function comanage_ldap_utils::bootstrap() {
     local suffix="${OLC_SUFFIX:-dc=my,dc=org}"
     local root_dn="${OLC_ROOT_DN:-cn=admin,dc=my,dc=org}"
 
-    if [[ -n "${OLC_ROOT_DN_PASSWORD}" && -z "${OLC_ROOT_PW}" ]]; then
+    if [[ -n "${OLC_ROOT_DN_PASSWORD}" && "${OLC_ROOT_PW}" = "password" ]]; then
         local root_pw="${OLC_ROOT_DN_PASSWORD}"
     else
         local root_pw="${OLC_ROOT_PW:-password}"
