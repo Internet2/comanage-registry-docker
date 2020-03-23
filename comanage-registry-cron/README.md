@@ -80,7 +80,20 @@ See the [list of environment variables common to all images](../docs/comanage-re
 including this image. Since this image does not run a webserver many of the environment variables will
 be ignored by containers instantiated from this image.
 
-If you do not use the same volume that is used with COmanage Registry be sure
+If you use the same volume that is used with COmanage Registry then you should
+set the environment variable
+
+```
+COMANAGE_REGISTRY_NO_DATABASE_CONFIG
+```
+
+to any value so that the cron container does not attempt to also create
+the database configuration file along with the COmanage Registry container.
+Failure to do so may lead to a race condition where the cron container
+writes an incorrect database configuration file because it does not
+have access to the same details as the full COmanage Registry container.
+
+If you do *not* use the same volume that is used with COmanage Registry be sure
 to set the environment variables
 
 * `COMANAGE_REGISTRY_DATASOURCE`
@@ -88,6 +101,9 @@ to set the environment variables
 * `COMANAGE_REGISTRY_DATABASE_HOST`
 * `COMANAGE_REGISTRY_DATABASE_USER`
 * `COMANAGE_REGISTRY_DATABASE_USER_PASSWORD`
+
+so that the container is able to write its own database configuration file
+and connect to the database.
 
 See also the next section for details on how to specify the location of
 the crontab file.
