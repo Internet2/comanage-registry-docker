@@ -51,6 +51,7 @@ section for links to documentation on how to deploy the images as services.
 * [COmanage Registry with mod\_auth\_openidc](comanage-registry-mod-auth-openidc/README.md)
 * [COmanage Registry for Internet2 TIER base](comanage-registry-internet2-tier-base/README.md)
 * [COmanage Registry for Internet2 TIER](comanage-registry-internet2-tier/README.md)
+* [COmanage Registry cron for executing JobShell jobs](comanage-registry-cron/README.md)
 * [PostgreSQL for COmanage Registry](comanage-registry-postgres/README.md)
 * [OpenLDAP slapd base for COmanage Registry](comanage-registry-slapd-base/README.md)
 * [OpenLDAP slapd for COmanage Registry](comanage-registry-slapd/README.md)
