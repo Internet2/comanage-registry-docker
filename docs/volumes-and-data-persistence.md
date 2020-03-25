@@ -34,7 +34,7 @@ will be written.
 or a bind mount.*
 
 The directory path inside the container that must be mounted
-is `/src/comanage-registry/local`.
+is `/srv/comanage-registry/local`.
 
 For example to use a bind mount from the local Docker engine host:
 
