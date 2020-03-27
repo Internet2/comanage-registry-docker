@@ -113,3 +113,4 @@ The following link to detailed instructions for a number of deployment scenarios
 * [Environment Variables Common to All slapd Images](docs/slapd-common-environment-variables.md)
 * [Executing LDIF Files](docs/slapd-ldif.md)
 * [OpenLDAP slapd for COmanage Registry Volumes and Data Persistence](docs/openldap-volumes-and-data-persistence.md)
+* [Simple Development Sandbox](docs/simple-development.md)
