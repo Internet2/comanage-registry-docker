@@ -71,11 +71,9 @@ The image supports the environment variables below and the `_FILE`
 `POSTGRES_PASSWORD`
 
 * Description: password for superuser
-* Required: no
-* Default: none
+* Required: yes
+* Default: value of COMANAGE_REGISTRY_POSTGRES_USER_PASSWORD
 * Example: `l7cX28O3mt03y41EndjM`
-* Note: If you do not set a password for the superuser then
-any client with access to the container may connect to the database.
 
 `COMANAGE_REGISTRY_POSTGRES_DATABASE`
 
@@ -94,16 +92,15 @@ any client with access to the container may connect to the database.
 `COMANAGE_REGISTRY_POSTGRES_USER_PASSWORD`
 
 * Description: password for database user
-* Required: no
-* Default: none
+* Required: yes
+* Default: `password`
 * Example: `5Aw9SzS4xqYi7daHw57c`
-* Note: If you do not set a password for the COmanage Registry user then
-any client with access to the container may connect to the database.
 
 ## Authentication
 
-If you do not set a password for the superuser or the COmanage Registry user then
-any client with access to the container may connect to the database.
+Authentication is not required to connect from within the container,
+but any client connecting from another host/container must provide
+a password.
 
 ## Ports
 
@@ -166,12 +163,14 @@ An example is
 docker run \
     -it \
     --rm \
-    --network temp_default \
+    --network _default \
     comanage-registry-postgres \
+    bash -c \
+    'PGPASSWORD="password" \
     pg_dump \
         -h comanage-registry-database \
         -U registry_user \
-        registry
+        registry'
 ```
 
 The output from the `pg_dump` command is sent to the stdout of the temporary
