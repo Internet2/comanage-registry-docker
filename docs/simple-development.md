@@ -30,10 +30,16 @@ log into COmanage Registry but do not save any changes. Be sure to run
 `docker compose down` so that no containers are left running.
 
 * Create a directory somewhere to save the state of the COmanage Registry
-database. For example
+database. For example, on Linux
 
 ```
 sudo mkdir -p /srv/docker/var/lib/postgresql/data
+```
+
+On Mac OS you might instead do something like
+
+```
+mkdir -p $HOME/comanage-data/postgresql/data
 ```
 
 * Clone the COmanage Registry repository somewhere, for example
