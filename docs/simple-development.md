@@ -139,6 +139,96 @@ docker-compose stop
 docker-compose down
 ```
 
+### Adding more test users
+
+The simple development sandbox uses 
+[standard HTTP basic authentication](https://en.wikipedia.org/wiki/Basic_access_authentication),
+and in particular the 
+[Apache HTTP Server implementation of basic authentication](https://httpd.apache.org/docs/2.4/howto/auth.html).
+The default user is `registry.admin` and the default password is `password`.
+
+To add more test users begin by copying the default basic authentication file
+from a running container to your file system, for example
+
+```
+docker cp comanage-registry:/etc/apache2/basic-auth basic-auth
+```
+
+Move that file to somewhere on your filesystem where you can use it as another
+bind-mount volume for the COmanage Registry container, for example
+
+```
+mkdir -p /srv/docker/etc/apache2/
+cp basic-auth /srv/docker/etc/apache2/basic-auth
+```
+
+Edit the docker-compose file and add the bind-mount for the `comanage-registry`
+service, for example
+
+```
+volume:
+    - /srv/docker/etc/apache2/basic-auth:/etc/apache2/basic-auth
+```
+
+Edit the basic-auth file using the `htpasswd` command. For example
+to add the user `skoranda` run
+
+```
+htpasswd /srv/docker/etc/apache2/basic-auth skoranda
+```
+
+Restart the services and you can now authenticate to COmanage Registry
+using the username and password combination you added to the password
+file.
+
+### Mocking Apache CGI environment variables
+
+Some COmanage Registry functionality, such as the
+[Env Source](https://spaces.at.internet2.edu/x/swr9Bg)
+Organizational Identity Source, requires that the Apache HTTP Server
+set Apache CGI environment variables. These environment variables are
+usually set by more sophisticated authentication modules like the
+Shibboleth Service Provider (SP). You can mock up the same 
+behavior using the
+[SetEnv](https://httpd.apache.org/docs/2.4/mod/mod_env.html)
+directive for Apache.
+
+To mock up an environment variable begin by copying the default Apache
+configuration file from a running container to your file system, for example
+
+```
+docker cp comanage-registry:/etc/apache2/sites-available/000-comanage.conf
+```
+
+Move that file to somewhere on your filesystem where you can use it as another
+bind-mount volume for the COmanage Registry container, for example
+
+```
+mkdir -p /srv/docker/etc/apache2/
+cp basic-auth /srv/docker/etc/apache2/sites-available/000-comanage.conf
+```
+
+Edit the docker-compose file and add the bind-mount for the `comanage-registry`
+service, for example
+
+```
+volume:
+    - /srv/docker/etc/apache2/sites-available/000-comanage.conf:/etc/apache2/sites-available/000-comanage.conf
+```
+
+Edit the `000-comanage.conf` file and add a `SetEnv` directive, for example
+
+```
+SetEnv OIS_ENV_NAME_GIVEN Scott
+SetEnv OIS_ENV_NAME_FAMILY Koranda
+SetEnv OIS_ENV_MAIL skoranda@gmail.com
+```
+
+Restart the services and authenticate to COmanage Registry.
+After authenticating COmanage Registry should "see" those
+environment variables defined for the authenticated user.
+
+
 ### Important Notes
 The instructions above are *not suitable for a production deployment* 
 since the deployed services use default and easily guessed passwords.
