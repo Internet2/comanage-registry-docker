@@ -181,6 +181,16 @@ Restart the services and you can now authenticate to COmanage Registry
 using the username and password combination you added to the password
 file.
 
+Note that an authentication module used in production, like the 
+Shibboleth Service Provider (SP), often sets the "username" to a
+more sophisticated value. For example, if the Shibboleth SP is configured
+to consume eduPersonPrincipalName (ePPN) and populate that into
+`REMOTE_USER` then the "username" might be a value like
+`scott.koranda@uwm.edu`. 
+
+You can mock up the same behavior by simply adding the "username"
+`scott.koranda@uwm.edu` with a password using the above technique.
+
 ### Mocking Apache CGI environment variables
 
 Some COmanage Registry functionality, such as the
@@ -188,7 +198,7 @@ Some COmanage Registry functionality, such as the
 Organizational Identity Source, requires that the Apache HTTP Server
 set Apache CGI environment variables. These environment variables are
 usually set by more sophisticated authentication modules like the
-Shibboleth Service Provider (SP). You can mock up the same 
+Shibboleth (SP). You can mock up the same 
 behavior using the
 [SetEnv](https://httpd.apache.org/docs/2.4/mod/mod_env.html)
 directive for Apache.
