@@ -229,9 +229,10 @@ volume:
 Edit the `000-comanage.conf` file and add a `SetEnv` directive, for example
 
 ```
-SetEnv OIS_ENV_NAME_GIVEN Scott
-SetEnv OIS_ENV_NAME_FAMILY Koranda
-SetEnv OIS_ENV_MAIL skoranda@gmail.com
+SetEnv ENV_OIS_NAME_GIVEN Scott
+SetEnv ENV_OIS_NAME_FAMILY Koranda
+SetEnv ENV_OIS_MAIL skoranda@gmail.com
+SetEnv ENV_OIS_EPPN scott.koranda@sphericalcowgroup.com
 ```
 
 Restart the services and authenticate to COmanage Registry.
