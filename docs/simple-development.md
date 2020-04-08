@@ -151,7 +151,7 @@ To add more test users begin by copying the default basic authentication file
 from a running container to your file system, for example
 
 ```
-docker cp comanage-registry:/etc/apache2/basic-auth basic-auth
+docker cp comanage-registry:/etc/apache2/basic-auth ./basic-auth
 ```
 
 Move that file to somewhere on your filesystem where you can use it as another
@@ -207,7 +207,7 @@ To mock up an environment variable begin by copying the default Apache
 configuration file from a running container to your file system, for example
 
 ```
-docker cp comanage-registry:/etc/apache2/sites-available/000-comanage.conf
+docker cp comanage-registry:/etc/apache2/sites-available/000-comanage.conf ./000-comanage.conf
 ```
 
 Move that file to somewhere on your filesystem where you can use it as another
