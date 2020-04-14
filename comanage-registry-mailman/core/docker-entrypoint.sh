@@ -157,14 +157,12 @@ then
     wait_for_mysql
 fi
 
-CONTAINER_IP=`hostname -i`
-
 # Generate a basic mailman.cfg.
 cat >> /etc/mailman.cfg <<EOF
 [mta]
 incoming: mailman.mta.postfix.LMTP
 outgoing: mailman.mta.deliver.deliver
-lmtp_host: $CONTAINER_IP
+lmtp_host: $MM_HOSTNAME
 lmtp_port: 8024
 smtp_host: $SMTP_HOST
 smtp_port: $SMTP_PORT
@@ -174,7 +172,7 @@ configuration: /etc/postfix-mailman.cfg
 sleep_time: 10s
 
 [webservice]
-hostname: $CONTAINER_IP
+hostname: $MM_HOSTNAME
 port: $MAILMAN_REST_PORT
 admin_user: $MAILMAN_REST_USER
 admin_pass: $MAILMAN_REST_PASSWORD
