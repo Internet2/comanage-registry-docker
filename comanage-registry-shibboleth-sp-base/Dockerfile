@@ -22,6 +22,7 @@ RUN apt-get update \
       && apt-get install -y --no-install-recommends \
             apache2 \
             apache2-dev \
+            ca-certificates \
             file \
             gcc \
             g++ \
@@ -50,7 +51,7 @@ RUN wget -O log4shib.tar.gz "${LOG4SHIB_URL}" \
       && cd .. \
       && rm -r src 
 
-ARG XERCESC_URL=http://ftp.wayne.edu/apache//xerces/c/3/sources/xerces-c-3.2.2.tar.gz
+ARG XERCESC_URL=https://apache.cs.utah.edu/xerces/c/3/sources/xerces-c-3.2.3.tar.gz
 
 RUN wget -O xerces.tar.gz "${XERCESC_URL}" \
       && mkdir -p src \
@@ -63,7 +64,7 @@ RUN wget -O xerces.tar.gz "${XERCESC_URL}" \
       && cd .. \
       && rm -r src 
 
-ARG XMLSECC_URL=http://ftp.wayne.edu/apache/santuario/c-library/xml-security-c-2.0.2.tar.gz
+ARG XMLSECC_URL=https://apache.cs.utah.edu/santuario/c-library/xml-security-c-2.0.2.tar.gz
 
 RUN wget -O xmlsecc.tar.gz "${XMLSECC_URL}" \
       && mkdir -p src \
@@ -79,7 +80,7 @@ RUN wget -O xmlsecc.tar.gz "${XMLSECC_URL}" \
       && cd .. \
       && rm -r src 
 
-ARG XMLTOOLING_URL=http://shibboleth.net/downloads/c++-opensaml/3.0.1/xmltooling-3.0.4.tar.gz
+ARG XMLTOOLING_URL=http://shibboleth.net/downloads/c++-opensaml/3.1.0/xmltooling-3.1.0.tar.gz
 
 RUN wget -O xmltooling.tar.gz "${XMLTOOLING_URL}" \
       && mkdir -p src \
@@ -96,7 +97,7 @@ RUN wget -O xmltooling.tar.gz "${XMLTOOLING_URL}" \
       && cd .. \
       && rm -r src 
 
-ARG OPENSAMLC_URL=http://shibboleth.net/downloads/c++-opensaml/3.0.1/opensaml-3.0.1.tar.gz
+ARG OPENSAMLC_URL=http://shibboleth.net/downloads/c++-opensaml/3.1.0/opensaml-3.1.0.tar.gz
 
 RUN wget -O opensamlc.tar.gz "${OPENSAMLC_URL}" \
       && mkdir -p src \
@@ -113,7 +114,7 @@ RUN wget -O opensamlc.tar.gz "${OPENSAMLC_URL}" \
       && cd .. \
       && rm -r src 
 
-ARG SHIBBOLETH_SP_URL=http://shibboleth.net/downloads/service-provider/3.0.4/shibboleth-sp-3.0.4.tar.gz
+ARG SHIBBOLETH_SP_URL=http://shibboleth.net/downloads/service-provider/3.1.0/shibboleth-sp-3.1.0.tar.gz
 
 RUN wget -O shibboleth-sp.tar.gz "${SHIBBOLETH_SP_URL}" \
       && mkdir -p src \
