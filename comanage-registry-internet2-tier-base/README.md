@@ -51,7 +51,7 @@ docker build \
 ## Building Example
 
 ```
-export COMANAGE_REGISTRY_I2_BASE_IMAGE_VERSION=1
+export COMANAGE_REGISTRY_I2_BASE_IMAGE_VERSION=2
 TAG="${COMANAGE_REGISTRY_I2_BASE_IMAGE_VERSION}"
 docker build \
     -t comanage-registry-internet2-tier-base:${TAG} .

@@ -58,9 +58,9 @@ docker build \
 ## Building Example
 
 ```
-export COMANAGE_REGISTRY_VERSION=3.2.1
+export COMANAGE_REGISTRY_VERSION=3.2.4
 export COMANAGE_REGISTRY_BASE_IMAGE_VERSION=1
-export COMANAGE_REGISTRY_I2_BASE_IMAGE_VERSION=1
+export COMANAGE_REGISTRY_I2_BASE_IMAGE_VERSION=2
 export COMANAGE_REGISTRY_I2_IMAGE_VERSION=1
 TAG="${COMANAGE_REGISTRY_VERSION}-internet2-tier-${COMANAGE_REGISTRY_I2_IMAGE_VERSION}"
 docker build \
@@ -134,7 +134,7 @@ docker run -d \
   -v /etc/shibboleth/my-org-metadata.xml:/etc/shibboleth/my-org-metadata.xml \
   -p 80:80 \
   -p 443:443 \
-  comanage-registry:3.2.1-internet2-tier-1
+  comanage-registry:3.2.4-internet2-tier-1
 ```
 
 ## Logging

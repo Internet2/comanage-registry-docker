@@ -57,7 +57,7 @@ docker build \
 ## Building Example
 
 ```
-export COMANAGE_REGISTRY_VERSION=3.2.1
+export COMANAGE_REGISTRY_VERSION=3.2.4
 export COMANAGE_REGISTRY_BASE_IMAGE_VERSION=1
 export COMANAGE_REGISTRY_MOD_AUTH_OPENIDC_IMAGE_VERSION=1
 TAG="${COMANAGE_REGISTRY_VERSION}-mod-auth-openidc-${COMANAGE_REGISTRY_MOD_AUTH_OPENIDC_IMAGE_VERSION}"
@@ -129,7 +129,7 @@ docker run -d \
   -v mod-auth-openidc.conf:/etc/apache2/conf-enabled/mod-auth-openidc.conf \
   -p 80:80 \
   -p 443:443 \
-  comanage-registry:3.2.1-mod-auth-openidc-1
+  comanage-registry:3.2.4-mod-auth-openidc-1
 ```
 
 ## Logging

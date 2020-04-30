@@ -55,9 +55,9 @@ docker build \
 ## Building Example
 
 ```
-export COMANAGE_REGISTRY_VERSION=3.2.1
+export COMANAGE_REGISTRY_VERSION=3.2.4
 export COMANAGE_REGISTRY_BASE_IMAGE_VERSION=1
-export COMANAGE_REGISTRY_SHIBBOLETH_SP_VERSION=3.0.3
+export COMANAGE_REGISTRY_SHIBBOLETH_SP_VERSION=3.1.0
 export COMANAGE_REGISTRY_SHIBBOLETH_SP_BASE_IMAGE_VERSION=1
 export COMANAGE_REGISTRY_SHIBBOLETH_SP_IMAGE_VERSION=1
 TAG="${COMANAGE_REGISTRY_VERSION}-shibboleth-sp-${COMANAGE_REGISTRY_SHIBBOLETH_SP_IMAGE_VERSION}"
@@ -115,7 +115,7 @@ docker run -d \
   -v /etc/shibboleth/my-org-metadata.xml:/etc/shibboleth/my-org-metadata.xml \
   -p 80:80 \
   -p 443:443 \
-  comanage-registry:3.2.1-shibboleth-sp-1
+  comanage-registry:3.2.4-shibboleth-sp-1
 ```
 
 ## Logging

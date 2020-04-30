@@ -44,7 +44,7 @@ wiki page for the list of releases. We recommend using the latest release.
 Here is an example (but please check the wiki page for the latest release number):
 
 ```
-export COMANAGE_REGISTRY_VERSION=3.2.3
+export COMANAGE_REGISTRY_VERSION=3.2.4
 ```
 
 * Build the base COmanage Registry image:

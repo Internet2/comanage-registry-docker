@@ -58,7 +58,7 @@ docker build \
 ## Building Example
 
 ```
-export COMANAGE_REGISTRY_VERSION=3.2.1
+export COMANAGE_REGISTRY_VERSION=3.2.4
 export COMANAGE_REGISTRY_BASE_IMAGE_VERSION=1
 export COMANAGE_REGISTRY_BASIC_AUTH_IMAGE_VERSION=1
 TAG="${COMANAGE_REGISTRY_VERSION}-basic-auth-${COMANAGE_REGISTRY_BASIC_AUTH_IMAGE_VERSION}" 
@@ -110,7 +110,7 @@ docker run -d \
   -v /opt/comanage-registry-local:/srv/comanage-registry/local \
   -p 80:80 \
   -p 443:443 \
-  comanage-registry:3.2.1-basic-auth-1
+  comanage-registry:3.2.4-basic-auth-1
 ```
 
 ## Logging
