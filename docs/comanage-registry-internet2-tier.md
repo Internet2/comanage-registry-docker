@@ -19,11 +19,19 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 
-# COmanage Registry Internet2 TIER
+# COmanage Registry InCommon Trusted Access Platform (TAP)
 
-Follow these steps to build and run the Internet2 TIER COmanage Registry
+Follow these steps to build and run the InCommon Trusted Access Platform (TAP) COmanage Registry
 image. The image uses CentOS as the base operating system and the
 Shibboleth SP for authentication. 
+
+If you prefer to use a pre-built image please use the InCommon TAP
+image available at 
+[InCommon Trusted Access Platform Release](https://spaces.at.internet2.edu/x/fQFbC)
+and skip down to the section 
+[Running the InCommon TAP image](#running-the-incommon-tap-image).
+
+## Building the InCommon TAP Image
 
 * Install Docker. These instructions require version 17.05 or higher.
 
@@ -100,6 +108,10 @@ docker build \
 popd
 ```
 
+## Running the InCommon TAP image
+
+* Install Docker. These instructions require version 17.05 or higher.
+
 * Initialize the Docker Swarm:
 
 ```
@@ -173,7 +185,9 @@ example
 export COMANAGE_REGISTRY_VIRTUAL_HOST_FQDN=registry.my.org
 ```
 
-* Create a Docker Swarm services stack description (compose) file in YAML format:
+* Create a Docker Swarm services stack description (compose) file in YAML format.
+If you are using a pre-built InCommon TAP image change the `image` below for
+the comanage-registry service to be the name of the TAP image you are using:
 
 ```
 version: '3.1'
