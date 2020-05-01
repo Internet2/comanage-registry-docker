@@ -42,7 +42,7 @@ wiki page for the list of releases. We recommend using the latest release.
 Here is an example (but please check the wiki page for the latest release number):
 
 ```
-export COMANAGE_REGISTRY_VERSION=3.2.1
+export COMANAGE_REGISTRY_VERSION=3.2.4
 ```
 
 * Define the shell variable `COMANAGE_REGISTRY_BASE_IMAGE_VERSION` to be the
