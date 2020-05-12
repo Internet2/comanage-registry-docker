@@ -53,7 +53,19 @@ RUN wget -O log4shib.tar.gz "${LOG4SHIB_URL}" \
 
 ARG XERCESC_URL=https://apache.cs.utah.edu/xerces/c/3/sources/xerces-c-3.2.3.tar.gz
 
-RUN wget -O xerces.tar.gz "${XERCESC_URL}" \
+ARG XERCESC_DIST_URLS="\
+    ${XERCESC_URL} \
+    https://mirrors.ocf.berkeley.edu/apache/xerces/c/3/sources/xerces-c-3.2.3.tar.gz \
+    http://www.gtlib.gatech.edu/pub/apache//xerces/c/3/sources/xerces-c-3.2.3.tar.gz \
+    http://apache.mirrors.spacedump.net/xerces/c/3/sources/xerces-c-3.2.3.tar.gz \
+    http://apache.mirror.serversaustralia.com.au/xerces/c/3/sources/xerces-c-3.2.3.tar.gz"
+
+RUN for distUrl in ${XERCESC_DIST_URLS}; \
+      do \
+        if wget -nv -O xerces.tar.gz "${distUrl}"; then \
+            break; \
+        fi; \
+      done \
       && mkdir -p src \
       && tar -zxf xerces.tar.gz -C src --strip-components=1 \
       && rm -f xerces.tar.gz \
@@ -66,7 +78,19 @@ RUN wget -O xerces.tar.gz "${XERCESC_URL}" \
 
 ARG XMLSECC_URL=https://apache.cs.utah.edu/santuario/c-library/xml-security-c-2.0.2.tar.gz
 
-RUN wget -O xmlsecc.tar.gz "${XMLSECC_URL}" \
+ARG XMLSECC_DIST_URLS="\
+    ${XMLSECC_DIST_URLS} \
+    https://mirrors.ocf.berkeley.edu/apache/santuario/c-library/xml-security-c-2.0.2.tar.gz \
+    http://www.gtlib.gatech.edu/pub/apache/santuario/c-library/xml-security-c-2.0.2.tar.gz \
+    http://apache.mirrors.spacedump.net/santuario/c-library/xml-security-c-2.0.2.tar.gz \
+    http://apache.mirror.serversaustralia.com.au/santuario/c-library/xml-security-c-2.0.2.tar.gz" 
+
+RUN for distUrl in ${XMLSECC_DIST_URLS}; \
+      do \
+        if wget -nv -O xmlsecc.tar.gz "${distUrl}"; then \
+            break; \
+        fi; \
+      done \
       && mkdir -p src \
       && tar -zxf xmlsecc.tar.gz -C src --strip-components=1 \
       && rm -f xmlsecc.tar.gz \
