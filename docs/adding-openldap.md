@@ -113,6 +113,17 @@ comanage-registry-ldap:
         replicas: 1
 ```
 
+COmanage Registry and OpenLDAP slapd can communicate directly using the default
+network created by Docker Swarm when the service stack is instantiated. So it 
+is not necessary to expose the slapd port unless required for other services
+that are not part of the stack to contact slapd. If you need to expose the slapd
+port also add to the above
+
+```
+    ports:
+      - "389:389"
+```
+
 * Be sure to also edit the services stack description file and add
 the `olc_root_pw` secret to the list of secrets.
 
@@ -140,4 +151,13 @@ and then change the `command` above to be
 
 ```
 command: ["slapd", "-d", "256", "-h", "ldapi:/// ldap:/// ldaps:///", "-u", "openldap", "-g", "openldap"]
+```
+
+If you need to expose the TLS endpoint in addition to port 389 also edit
+the configuration of the ports in the services stack description (compose) file to be
+
+```
+    ports:
+      - "389:389"
+      - "636:636"
 ```
