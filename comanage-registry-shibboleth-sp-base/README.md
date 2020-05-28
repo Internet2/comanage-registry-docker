@@ -28,6 +28,11 @@ The image built from this Dockerfile is primarily intended to be used
 as a base for building other COmanage Registry images using Dockerfile 
 multi-stage build functionality. 
 
+Note that when the image is built the C++ source code for the 
+Shibboleth SP is compiled from source. Doing so requires significant amounts
+of RAM. The image is known to build to completion on a virtual machine with
+4 GB of RAM, though less RAM may actually be required.
+
 ## Build Arguments
 
 The following arguments *may* be provided when building but are not required
