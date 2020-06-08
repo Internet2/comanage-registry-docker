@@ -120,8 +120,8 @@ stderr of the container.
 
 ## HTTPS Configuration
 
-See the section on environment variables and the `HTTPS_CERT_FILE` and
-`HTTPS_PRIVKEY_FILE` variables.
+See the section on environment variables and the `HTTPS_CERT_FILE`,
+`HTTPS_PRIVKEY_FILE`, and `HTTPS_CHAIN_FILE` variables.
 
 Additionally you may bind mount or COPY in an X.509 certificate file (containing the CA signing certificate(s), if any)
 and associated private key file. For example

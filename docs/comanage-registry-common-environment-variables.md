@@ -231,6 +231,14 @@ edited directly.
 * Example: /run/secrets/https_privkey_file
 * Note: The path is relative to the running container.
 
+```HTTPS_CHAIN_FILE```
+
+* Description: path to file containing x509 certificate signing chain for HTTPS, if not specified then `HTTPS_CERT_FILE` much contain a full signing chain for the certificate.
+* Required: no
+* Default: none
+* Example: /run/secrets/https_chain_file
+* Note: The path is relative to the running container.
+
 
 ```SERVER_NAME```
 
